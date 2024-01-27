@@ -11,6 +11,7 @@ data= pd.merge(data, regions_name[['num_dep','region_name']], left_on='dep', rig
 mois_ordre = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 # Conversion de la variable 'mois' en facteur ordonnné
 data['mois'] = pd.Categorical(data['mois'], categories=mois_ordre, ordered=True)
+data['situ'] = data['situ'].replace(['Non renseigné', 'Aucun','Autres','Sur autre voie spéciale'], 'Autres')
 
 def fig1():
     # on calcul les occurences des accidents par année
@@ -207,9 +208,7 @@ def pie_age_grav(modalite,annee):
         )
     return fig4
 
-
-def density(variable,annee):
-    variable_names = {
+variable_names = {
         "grav": "Gravité de la blessure",
         "situ": "Lieux",
         "trajet": "Trajet de l'usager",
@@ -217,18 +216,20 @@ def density(variable,annee):
         "dep": "Département",
         "region_name": "Région"
     }
-    color_discrete_map = {
+color_discrete_map = {
         "grav": ['#4cae4c','#6495ed','#ffa54f','#ff6666'],
-    }
-    category_orders = {
+        "sexe": ['#6495ed','#ff6666']
+}
+category_orders = {
         "grav": ["Indemne", "Blessé léger", "Blessé hospitalisé", "Tué"],
         "situ": data["situ"].unique(),
         "trajet": data["trajet"].unique(),
         "sexe": data["sexe"].unique(),
         "dep" : data["dep"].unique(),
         "region_name" : data["region_name"].unique(),
-    }
+}
 
+def density(variable,annee):
     if variable == "all":
         if annee == "all":
             df = data.groupby("an").size().reset_index(name="nb_accidents")
@@ -270,4 +271,21 @@ def density(variable,annee):
     return fig
 
 
-
+def bar(var, annee):
+    if var =="all":
+        if annee == "all":
+            accidents = data.shape[0]
+        else: 
+            accidents = data[data["an"]==annee].shape[0]
+        total_accidents = pd.DataFrame({'Total d\'accidents': [accidents]})
+        fig = px.bar(total_accidents, y='Total d\'accidents') 
+        fig.update_layout(xaxis_title=annee,yaxis_title = "Nombre d'accidents")
+    else:
+        if annee == "all":
+            accidents_par_var = data.groupby(var).size().reset_index(name="nb_accidents")
+        else:
+            accidents_par_var = data[data["an"] == annee].groupby(var).size().reset_index(name="nb_accidents")
+        accidents_par_var = accidents_par_var.sort_values('nb_accidents', ascending=False)
+        fig = px.bar(accidents_par_var, x=var, y="nb_accidents")
+        fig.update_layout(xaxis_title=variable_names.get(var, var),yaxis_title = "Nombre d'accidents",legend_title_text=variable_names.get(var, var))
+    return fig
