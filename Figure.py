@@ -44,6 +44,7 @@ SIDEBAR_STYLE = {
     "bottom": 0,
     "width": "16rem",
     "padding": "2rem 1rem",
+    "transition": "all 0.5s",
     "background-color": "#f8f9fa",
 }
 
@@ -57,7 +58,7 @@ SIDEBAR_HIDEN = {
     "z-index": 1,
     "overflow-x": "hidden",
     "transition": "all 0.5s",
-    "padding": "0rem 0rem",
+    "padding": "2rem 1rem",
     "background-color": "#f8f9fa",
 }
 
@@ -271,7 +272,7 @@ def fig3():
 # --------------------------------------------------------------------------------------------------
 
 def pie_age_grav(modalite,annee):
-    if annee=="all":
+    if annee==2004:# cas du "all"
         age_mort = data[data["grav"]==modalite].groupby(["age_group"]).size().reset_index(name= "nb_accidents")
     else:
         age_mort = data[(data["grav"]==modalite) & (data["an"]==annee)].groupby(["age_group"]).size().reset_index(name= "nb_accidents")
@@ -283,7 +284,7 @@ def pie_age_grav(modalite,annee):
         data_grav2 = data[data['grav'] == 'Blessé léger']
         data_grav3 = data[data['grav'] == 'Blessé hospitalisé']
         data_grav4 = data[data['grav'] == 'Tué']
-        if annee=="all":
+        if annee==2004:# cas du "all"
             loc1 = data_grav1.groupby('age_group').size().reset_index(name="nombre_d'accidents")
             loc2 = data_grav2.groupby('age_group').size().reset_index(name="nombre_d'accidents")
             loc3 = data_grav3.groupby('age_group').size().reset_index(name="nombre_d'accidents")

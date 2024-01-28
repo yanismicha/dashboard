@@ -132,7 +132,7 @@ def get_callbacks(app):
     @callback(
         Output('graph6', 'figure'),
         [Input('modalite-dropdown', 'value'),
-         Input('annee-dropdown','value'),
+         Input('annee-slider','value'),
         ]
     )
     def update_pie(selected_modalite,selected_annee):

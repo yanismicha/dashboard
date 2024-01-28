@@ -89,16 +89,7 @@ page_main = html.Div([
 # --------------------------------------------------------------------------------------------------
 page_usager = html.Div([
                 html.Div(
-                    children=[
-                       dbc.Row(
-                        [
-                            dbc.Col("Info 1", width=3),
-                            dbc.Col("Info 2", width=3),
-                            dbc.Col("Info 3", width=3),
-                            dbc.Col("Info 4", width=3),
-                        ],
-                       ),
-                    ],
+                    html.H1("Description des accidents et états/situation des usagers mis en cause"),
                     style={
                         "border": "0px solid black",
                         "padding": "10px 20px",
@@ -107,7 +98,7 @@ page_usager = html.Div([
                         "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
                         "background": "#ffffff",
                         "margin-bottom": "20px",
-                        "height": "200px"
+                        "font-family": "Montserrat, sans-serif",
                     },
                 ),
                 html.Div(
@@ -172,14 +163,6 @@ page_usager = html.Div([
                         id='modalite-dropdown',
                         options=[{'label': modalite, 'value': modalite} for modalite in ["all"] + fig.data["grav"].unique().tolist()],
                         value=fig.data['grav'].unique()[2],  
-                        style={'width': '50%',
-                              "margin-bottom": "10px"}
-                    ),
-                     "Année:",
-                     dcc.Dropdown(
-                        id='annee-dropdown',
-                        options=[{'label': modalite, 'value': modalite} for modalite in fig.mod_year],
-                        value=fig.mod_year[0], 
                         style={'width': '50%'}
                     ),
                     dcc.Graph(id='graph6'),
@@ -208,14 +191,14 @@ fonte = {'color': 'white', "font-weight": "bold", "margin" : "0 0 1% 0"}
 drop_style = {"margin" : "0 0 4% 0"}
 
 page_map = html.Div([
-                html.H1(["Accidentologi en france"], style=fonte),
+                html.H1(["Accidentologie en france"], style=fonte),
                 html.Div(className= "float-figainer",children=[
 
     
                     
                     html.Div(id="selection", className="float-child",
                             children=[
-                                      html.Div(children=["Selectionné l'année"], style=fonte),
+                                      html.Div(children=["Selectionner l'année"], style=fonte),
                                       dcc.Dropdown(id='dropdown_an',
                                                   options=fig.data['an'].unique(),
                                                   value="all",
@@ -224,7 +207,7 @@ page_map = html.Div([
                                                   style= drop_style),
                                       #html.Div(id='var_select_text',style={'color': 'white'}),
                                       
-                                      html.Div(children=["Selectionné le mois"], style=fonte),
+                                      html.Div(children=["Selectionner le mois"], style=fonte),
                                       dcc.Dropdown(id='dropdown_mois',
                                                   options=fig.data['mois'].unique(),
                                                   value="all", 
@@ -232,7 +215,7 @@ page_map = html.Div([
                                                   placeholder="all",
                                                   style= drop_style),
                                       
-                                      html.Div(children=["Selectionné le jour"], style=fonte),
+                                      html.Div(children=["Selectionner le jour"], style=fonte),
                                       dcc.Dropdown(id='dropdown_jour',
                                                   options=fig.data['jour'].unique(),
                                                   value="all", 
@@ -240,7 +223,7 @@ page_map = html.Div([
                                                   placeholder="all",
                                                   style= drop_style),
 
-                                      html.Div(children=["Selectionné catr"], style=fonte),
+                                      html.Div(children=["Selectionner catr"], style=fonte),
                                       dcc.Dropdown(id='dropdown_catr',
                                                   options=fig.data['catr'].unique(),
                                                   value="all", 
@@ -248,7 +231,7 @@ page_map = html.Div([
                                                   placeholder="all",
                                                   style= drop_style),
 
-                                      html.Div(children=["Selectionné obsm"], style=fonte),
+                                      html.Div(children=["Selectionner obsm"], style=fonte),
                                       dcc.Dropdown(id='dropdown_obsm',
                                                   options=fig.data['obsm'].unique(),
                                                   value="all", 
@@ -256,7 +239,7 @@ page_map = html.Div([
                                                   placeholder="all",
                                                   style= drop_style),
 
-                                      html.Div(children=["Selectionné atm"], style=fonte),
+                                      html.Div(children=["Selectionner atm"], style=fonte),
                                       dcc.Dropdown(id='dropdown_atm',
                                                   options=fig.data['atm'].unique(),
                                                   value="all", 
@@ -267,7 +250,7 @@ page_map = html.Div([
 
 
                                       # Color ----------------------------------------------------------------------------------
-                                      html.Div(children=["Selectionnée la variable a être représenter en couleur"], style=fonte),
+                                      html.Div(children=["Selectionner la variable à être représentée en couleur"], style=fonte),
                                       dcc.Dropdown(id='dropdown_color',
                                                   options=[{"label":"Gravité de l'accident","value":'grav'},
                                                           {"label":"Aglomération","value":'agg'}, 
