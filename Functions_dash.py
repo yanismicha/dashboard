@@ -7,95 +7,100 @@ import Figure as fig
 import pages as pag
 
 
-def unlist(input):
-    """
-    Used to unpack dropdown output if it is in a list. Only return first element in list.
-     
-    Parameters:
-    - input (string, numeric, vector): Output from dropdown menu
 
-    Returns:
-    string OR numeric: Returns the input outside of the array
+
+def get_legend_groups(figure):
     """
-    if isinstance(input, list):
-        return input[0]
-    return input
-    
-def select_data(data: pd.DataFrame, selection: dict):
-    """
-    Filters the given data so as to only keep rows containing the specified modalities
+    Returns a set containing all the legend groups in string format.
         
     Parameters:
-    - data (pandas dataframe): The data frame the data is to extracted from
-
-    - selection (dictionary): Dictionnary containing columns and modalities to keep. Only row with the given modalities will be kept.
-                              Dict format: {'column_name1' : ['modality1', 'modality2'],
-                                            'column_name1' : ['modality1', 'modality2']}
+    - figure (ploty figure): The figure the legends are to be extracted from.
 
     Returns:
-    pandas dataframe: Dataframe containing only rows with the specified modalities
+    set: Set of strings of legend groups.
     """
-    out = data
+    if not figure['data']:# or not 'legendgroup' in figure['data']: 'data' not in figure or
+        return
 
-    if selection != {} and selection != 'all':
-        for i in selection.items():
-            out = out[out[i[0]].isin(i[1])]
-            
+    legend_groups = set()
+    for trace in figure['data']:
+        if 'legendgroup' in trace:
+            legend_groups.add(trace['legendgroup'])
+
+    return legend_groups
+
+
+
+def split_fig(figure):
+    """
+    Returns the figure as first value and a set of its legend groups as second.
+    
+    Returns:
+    - figure: The figure
+    - set: Set of strings of legend groups.
+    """
+    return figure, get_legend_groups(figure)
+
+
+def relayoutData_transform(relayoutData):
+    """
+    Extracts the x and y range out from a graph's relayoutData object to be used to filter data used in graphs.
+
+    Parameters:
+    - relayoutData (ploty plot attribute): The element indicating the xlim and ylim of a plot extracted by a callback function.
+
+    Returns:
+    - x_range: [min, max] both the min and max values of the x axis filtered from relayoutData
+
+    - y_range: [min, max] both the min and max values of the y axis filtered from relayoutData
+    """
+    if relayoutData is None:
+        return None, None
+
+    y_range = None
+    x_range = None
+        
+    if 'autosize' in relayoutData:
+        return None, None
+        
+    if 'xaxis.range[0]' in relayoutData or 'xaxis.range[1]' in relayoutData:
+        x_range = [relayoutData['xaxis.range[0]'], relayoutData['xaxis.range[1]']]
+
+    if 'yaxis.range[0]' in relayoutData or 'yaxis.range[1]' in relayoutData:
+        y_range = [relayoutData['yaxis.range[0]'], relayoutData['yaxis.range[1]']]
+
+    if "xaxis.autorange" in relayoutData:
+         x_range = None
+
+    if "yaxis.autorange" in relayoutData:
+        y_range = None
+        
+    return x_range, y_range
+
+
+def unpack_mods(data_obj: tuple):
+    """
+    Extracts the legend group of all points ploted in the graph an returns them in an array.
+
+    Parameters:
+    - data_obj (selectedData): The figure element extracted by a callback function input.
+
+    Returns:
+    - Array of strings: Array of strings containing all legends ploted in a graph.
+    """
+    out = []
+
+    for point in data_obj['points']:
+        out.append(point['legendgroup'])
+    
     return out
-    
-def build_selection(data: pd.DataFrame, 
-                    an = 'all',
-                    mois = 'all',
-                    jour = 'all',
-                    catr = 'all',
-                    obsm = 'all',
-                    atm = 'all'
-                    ):
-        
-    """
-    Builds the dictionnary used to select the data in the given data frame using the select_data function.
-    Ment to be used with dropdown menus. Each parameter should be given a vector of modalites for that column.
-        
-    Parameters:
-    - data (pandas dataframe): The data frame the data is to extracted from.
 
-    - ans ('all' or [] or vector): Vector containing all the modalities to be used to select ans
 
-    - mois ('all' or [] or vector): Vector containing all the modalities to be used to select mois
 
-    - jour ('all' or [] or vector): Vector containing all the modalities to be used to select jour
+# ------------------------------------------------------------------------------------------------------
+# --------------------------------- Callback functions -------------------------------------------------
+# ------------------------------------------------------------------------------------------------------
 
-    - catr ('all' or [] or vector): Vector containing all the modalities to be used to select catr
-
-    - obsm ('all' or [] or vector): Vector containing all the modalities to be used to select obsm
-
-    - atm ('all' or [] or vector): Vector containing all the modalities to be used to select atm
-
-    Returns:
-    pandas dataframe: Dataframe containing only rows with the specified modalities
-    """
-
-    out = {}
-
-    if an != 'all' and an != []:
-        out['an']=an
-
-    if mois != 'all' and mois != []:
-        out['mois']=mois
-            
-    if jour != 'all' and jour != []:
-        out['jour']=jour
-
-    if catr != 'all' and catr != []:
-        out['catr']=catr
-
-    if obsm != 'all' and obsm != []:
-        out['obsm']=obsm
-
-    if atm != 'all' and atm != []:
-        out['atm']=atm
-
-    return select_data(data, out)
 
 
 def get_callbacks(app):
@@ -110,25 +115,43 @@ def get_callbacks(app):
     def update_speed_animation(speed_animation):
         return fig.fig2(speed_animation)
         
+    
+    # ------------ Page 2 Line chart ------------------ 
     @callback(
         Output('graph4', 'figure'),
         [Input('variable-dropdown', 'value'),
          Input('annee-slider','value'),
+         Input('graph6', 'clickData')
         ]
     )
-    def update_density(selected_var,selected_annee):
+    def update_density(selected_var,selected_annee, clickData):
+        # Filters data if clickData Exists
+        if clickData is not None:
+
+            filtered_data = fig.data[fig.data['age_group'] == clickData['points'][0]["label"]]
+
+            return fig.density(selected_var,selected_annee, filtered_data, " " + str(clickData['points'][0]["label"]).lower())# Set title comp to the filtered value
+        
         return fig.density(selected_var,selected_annee)
     
+    # --------- Page 2 Bar chart ----------------------
     @callback(
         Output('graph5', 'figure'),
         [Input('variable-dropdown', 'value'),
          Input('annee-slider','value'),
+         Input('graph6', 'clickData')
         ]
     )
-    def update_bar(selected_var,selected_annee):
-        return fig.bar(selected_var,selected_annee)
-    
-    
+    def update_bar(selected_var,selected_annee, clickData):
+        # Filters data if clickData Exists
+        if clickData is not None:
+
+            filtered_data = fig.data[fig.data['age_group'] == clickData['points'][0]["label"]]
+
+            return fig.bar(selected_var, selected_annee, filtered_data, str(clickData['points'][0]["label"]).lower())
+
+
+        return fig.bar(selected_var, selected_annee)
     @callback(
         Output('graph6', 'figure'),
         [Input('modalite-dropdown', 'value'),
@@ -153,39 +176,8 @@ def get_callbacks(app):
         Input('dropdown_atm', 'value')]
     )
     def update_map(color, an, mois, jour, catr, cbsm, atm):
-    
-        legend_title_selection = {"grav" : "Gravité de l'accident",
-                                "int" : "Type d'intersection ou<br>c'est produit l'accident",
-                                "lum" : "Conditions d'éclairage<br>du lieu de l'accident",
-                                "jour" : "Jour de la semaine"}
-
-        fig = px.scatter_mapbox(build_selection(fig.data, an, mois, jour, catr, cbsm, atm),#select_data(data,selection=select), 
-                            lat="lat", 
-                            lon="long", 
-                            mapbox_style="carto-positron", 
-                            center={"lat":46.18, 'lon':4.7},
-                            zoom=3.8,
-                            custom_data=["date","hrmn","trajet", "int", "lum", 'nom_commune'],
-                            color=unlist(color),
-                            #color_discrete_sequence=color_select(unlist(color)),
-                            color_discrete_map = {'Blessé léger':'steelblue', 'Blessé hospitalisé':'orange', 'Tué':'red', 'Indemne':'lightgreen'},
-                            height=570,
-                            width=1000
-                            )
+        return fig.carte(color, an, mois, jour, catr, cbsm, atm)
         
-        fig.update_traces(hovertemplate="<br>".join(["Date : %{customdata[0]}", 
-                                                "Heure : %{customdata[1]}", 
-                                                "Type de trajet : %{customdata[2]}", 
-                                                "Intersection: %{customdata[3]}", 
-                                                "Conditions d'éclairage: %{customdata[4]}",
-                                                "Nom commune: %{customdata[5]}"])) # Replace the nan's in data set
-        
-        fig.update_layout(legend_title_text = legend_title_selection[unlist(color)],
-                        margin={"r":0,"t":0,"l":0,"b":0}
-                        #legend={'traceorder':[1,2,3,5,4]}
-                        )
-
-        return fig
     
 # ------------------------------------------------------------------------------------------------------
 # --------------------------------- Callback ????????? -------------------------------------------------
@@ -270,7 +262,7 @@ def get_callbacks(app):
             return pag.page_usager
         
         elif pathname == "/page-map":
-            return html.P("Oh cool, this is page 2.1!")
+            return pag.page_map
         
         elif pathname == "/page-2/2":
             return html.P("No way! This is page 2.2!")

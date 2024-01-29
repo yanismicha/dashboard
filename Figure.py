@@ -2,6 +2,7 @@ import dash
 from dash import Dash,dcc,html,callback,Input,Output,State
 import dash_bootstrap_components as dbc
 import pandas as pd 
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -19,7 +20,13 @@ data= pd.merge(data, regions_name[['num_dep','region_name']], left_on='dep', rig
 mois_ordre = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 # Conversion de la variable 'mois' en facteur ordonnné
 data['mois'] = pd.Categorical(data['mois'], categories=mois_ordre, ordered=True)
+jour_ordre = ["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"]
+data['jour'] = pd.Categorical(data['jour'], categories=jour_ordre, ordered=True)
+# on regroupe certaines modalités
 data['situ'] = data['situ'].replace(['Non renseigné', 'Aucun','Autres','Sur autre voie spéciale'], 'Autres')
+data['obsm'] = data['obsm'].replace([np.nan,'Aucun','Non renseigné'], 'Non renseigné')
+data['atm'] = data['atm'].replace([np.nan,'Autre'], 'Autre')
+
 # Définissez les intervalles et les labels
 bins = [0, 18, 30, 50, float('inf')]
 # ajout d'une variable age catégorielle
@@ -32,6 +39,144 @@ mod = data["an"].unique()
 mod.sort()
 # on rajoute "all"
 mod_year = ["all"] + mod.tolist()
+
+
+
+
+# --------------------------------------------------------------------------------------------------
+# ------------------------------------------ Fonctions ------------------------------------------------
+# --------------------------------------------------------------------------------------------------
+def unlist(input):
+    """
+    Used to unpack dropdown output if it is in a list. Only return first element in list.
+     
+    Parameters:
+    - input (string, numeric, vector): Output from dropdown menu
+
+    Returns:
+    string OR numeric: Returns the input outside of the array
+    """
+    if isinstance(input, list):
+        return input[0]
+    return input
+
+
+def select_data(data: pd.DataFrame, selection: dict):
+    """
+    Filters the given data so as to only keep rows containing the specified modalities
+        
+    Parameters:
+    - data (pandas dataframe): The data frame the data is to extracted from
+
+    - selection (dictionary): Dictionnary containing columns and modalities to keep. Only row with the given modalities will be kept.
+                              Dict format: {'column_name1' : ['modality1', 'modality2'],
+                                            'column_name1' : ['modality1', 'modality2']}
+
+    Returns:
+    pandas dataframe: Dataframe containing only rows with the specified modalities
+    """
+    out = data
+
+    if selection != {} and selection != 'all':
+        for i in selection.items():
+            out = out[out[i[0]].isin(i[1])]
+            
+    return out
+
+
+def build_selection(data: pd.DataFrame, 
+                    an = 'all',
+                    mois = 'all',
+                    jour = 'all',
+                    catr = 'all',
+                    obsm = 'all',
+                    atm = 'all'
+                    ):
+        
+    """
+    Builds the dictionnary used to select the data in the given data frame using the select_data function.
+    Ment to be used with dropdown menus. Each parameter should be given a vector of modalites for that column.
+        
+    Parameters:
+    - data (pandas dataframe): The data frame the data is to extracted from.
+
+    - ans ('all' or [] or vector): Vector containing all the modalities to be used to select an
+
+    - mois ('all' or [] or vector): Vector containing all the modalities to be used to select mois
+
+    - jour ('all' or [] or vector): Vector containing all the modalities to be used to select jour
+
+    - catr ('all' or [] or vector): Vector containing all the modalities to be used to select catr
+
+    - obsm ('all' or [] or vector): Vector containing all the modalities to be used to select obsm
+
+    - atm ('all' or [] or vector): Vector containing all the modalities to be used to select atm
+
+    Returns:
+    pandas dataframe: Dataframe containing only rows with the specified modalities
+    """
+
+    out = {}
+
+    if an != 'all' and an != []:
+        out['an']=an
+
+    if mois != 'all' and mois != []:
+        out['mois']=mois
+            
+    if jour != 'all' and jour != []:
+        out['jour']=jour
+
+    if catr != 'all' and catr != []:
+        out['catr']=catr
+
+    if obsm != 'all' and obsm != []:
+        out['obsm']=obsm
+
+    if atm != 'all' and atm != []:
+        out['atm']=atm
+
+    return select_data(data, out)
+
+def data_filter(data: pd.DataFrame, x: str = None, y: str = None, x_select: ([] or None)  = None, y_select: ([] or None)  = None):
+    """
+    Returns the data filtered by maximum and minimun values for both columns x and y in the given dataframe data.
+    To be used for filtering graphs based on the zoom of other graphs. 
+        
+    Parameters:
+    - data (pandas data frame): The data to be filtered.
+
+    - x (string): The name of the column in data to be used in plot's x axis.
+
+    - y (string): The name of the column in data to be used in plot's y axis.
+
+    - x_select ([numeric, numeric] or None): The minimum (vector[0]) and maximum (vector[1]) values used to filter the column used for x axis.
+
+    - y_select ([numeric, numeric] or None): The minimum (vector[0]) and maximum (vector[1]) values used to filter the column used for y axis.
+
+    Returns:
+    pandas DataFrame: The data filtered by maximum and minimum x and y values.
+
+    Details:
+    If x or y are specified but x_select or y_select are not function will return data unfiltered.
+    """
+    if (x_select != None and x is None) or (y_select != None and y is None):
+        raise Exception("If x_select is not None the x can not be None, or if y_select is not None the y can not be None!")
+
+    if (x != None and x not in data.columns.values) or (y != None and y not in data.columns.values):
+        raise Exception("x or y are not valid column names!")
+
+    if x_select != None:
+        data = data[(data[x] > x_select[0]) & (data[x] < x_select[1])]
+
+    if y_select != None:
+        data = data[(data[y] > y_select[0]) & (data[y] < y_select[1])]
+
+    return data
+
+
+
+
 
 # --------------------------------------------------------------------------------------------------
 # ------------------------------------------ Styles ------------------------------------------------
@@ -105,27 +250,27 @@ hosp_per = round(data[(data['an'] == data['an'].max()) & (data['grav'] == 'Bless
 
 nb_total = html.Div(style=style_div,
                   children=[html.P(style=style_nb_text1,
-                                   children=[f"Nombre d'accidents total recenser en {data['an'].max()}:"]), 
+                                   children=[f"Nombre d'accidents recensés en {data['an'].max()}:"]), 
                             html.B(style=style_nb,
                                    children=[f"{data[(data['an'] == data['an'].max())].count().iloc[0]}"])
                                    ])
 
 nb_mort = html.Div(style=style_div,
                   children=[html.P(style=style_nb_text1,
-                                   children=[f"Nombre de mort en {data['an'].max()}:"]), 
+                                   children=[f"Nombre de morts en {data['an'].max()}:"]), 
                             html.B(style=style_nb,
                                    children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Tué')].count().iloc[0]}"]),
                             html.P(style=style_nb_text2,
-                                   children=[f"Représente {mort_per}% des accidents total."])
+                                   children=[f"Représente {mort_per}% des accidents totaux."])
                                    ])
 
 nb_hospital = html.Div(style=style_div,
                   children=[html.P(style=style_nb_text1,
-                                   children=[f"Nombre de hospitalisation en {data['an'].max()}:"]), 
+                                   children=[f"Nombre d'hospitalisations en {data['an'].max()}:"]), 
                             html.B(style=style_nb,
                                    children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0]}"]),
                                    html.P(style=style_nb_text2,
-                                   children=[f"Représente {hosp_per}% des accidents total."])
+                                   children=[f"Représente {hosp_per}% des accidents totaux."])
                                    ])
 
 
@@ -345,8 +490,9 @@ def pie_age_grav(modalite,annee):
             annotations=[dict(text='Indemne', x=0.2, y=0.81, font_size=20, showarrow=False),
                          dict(text='Léger', x=0.79, y=0.81, font_size=20, showarrow=False),
                          dict(text='Hospitalisé', x=0.195, y=0.19, font_size=20, showarrow=False),
-                         dict(text='Tué', x=0.79, y=0.19, font_size=20, showarrow=False)]
-            
+                         dict(text='Tué', x=0.79, y=0.19, font_size=20, showarrow=False)],
+                         clickmode="event+select", # This allows for selection of 1 element by cliking on it
+                         hovermode="closest" # Recomended if using select in clickmode 
         )
     else:
         if modalite == "Indemne":
@@ -365,7 +511,10 @@ def pie_age_grav(modalite,annee):
                           title_y=0.98,  # Au-dessus du graphique
                           title_font=dict(size=20),
                           legend=dict(title="Age de l'usager:"),
-                          height=600                     
+                          height=600,
+                          clickmode="event+select", # This allows for selection of 1 element by cliking on it
+                          hovermode="closest" # Recomended if using select in clickmode
+
         )
     return fig4
 
@@ -379,7 +528,9 @@ variable_names = {
         "trajet": "Trajet de l'usager",
         "sexe": "Genre de l'usager",
         "dep": "Département",
-        "region_name": "Région"
+        "region_name": "Région",
+        "obsm":"Obstacle rencontré",
+        "atm":"Météo lors de l'accident",
     }
 color_discrete_map = {
         "grav": ['#4cae4c','#6495ed','#ffa54f','#ff6666'],
@@ -392,9 +543,18 @@ category_orders = {
         "sexe": data["sexe"].unique(),
         "dep" : data["dep"].unique(),
         "region_name" : data["region_name"].unique(),
+        "catr": ['Route Départementale', 'Voie Communales',
+           'Route nationale','Parc de stationnement ouvert à la circulation publique',
+           'Autoroute', 'Hors réseau public', 'Routes de métropole urbaine','autre'],
+        "obsm": ['Véhicule', 'Piéton','Véhicule sur rail',
+       'Animal domestique', 'Animal sauvage','Autre','Non renseigné'],
+        "atm":['Normale', 'Temps éblouissant',
+       'Temps couvert','Brouillard - fumée','Pluie légère',
+       'Pluie forte','Vent fort - tempête','Neige - grêle','Autre']
 }
 
-def density(variable,annee):
+
+def density(variable, annee, data = data, title_comp=None):
     if variable == "all":
         if annee == 2004: # equivalent a all pour le slider
             df = data.groupby("an").size().reset_index(name="nb_accidents")
@@ -405,15 +565,15 @@ def density(variable,annee):
                                                  ]))
             fig.update_layout(xaxis_title = "Année")
         else:
-            df = data[data["an"]==annee].groupby("mois").size().reset_index(name="nb_accidents")
+            df = data[data["an"]==annee].groupby("mois",observed=False).size().reset_index(name="nb_accidents")
             fig = px.area(df,x = "mois",y = "nb_accidents",custom_data = ['mois','nb_accidents'])
             fig.update_traces(hovertemplate="<br>".join([
                                                  "Mois : %{customdata[0]}",
                                                  "Nombre d'accidents : %{customdata[1]}"
                                                  ]))
     else:
-        if annee ==  2004: # equivalent a all pour le slider
-            df = data.groupby(["an",variable]).size().reset_index(name="nb_accidents")
+        if annee == 2004: # equivalent a all pour le slider
+            df = data.groupby(["an",variable],observed=False).size().reset_index(name="nb_accidents")
             fig = px.area(df,x = "an",y = "nb_accidents",color=variable,custom_data = ['an','nb_accidents',variable],
                          color_discrete_sequence=color_discrete_map.get(variable, px.colors.qualitative.Set1),
                           category_orders={variable: category_orders.get(variable)})
@@ -423,7 +583,7 @@ def density(variable,annee):
                                                  ]))
             fig.update_layout(xaxis_title = "Année")
         else:
-            df = data[data["an"]==annee].groupby(["mois",variable]).size().reset_index(name="nb_accidents")
+            df = data[data["an"]==annee].groupby(["mois",variable],observed=False).size().reset_index(name="nb_accidents")
             fig = px.area(df,x = "mois",y = "nb_accidents",color=variable,custom_data = ['mois','nb_accidents',variable],
                          color_discrete_sequence=color_discrete_map.get(variable, px.colors.qualitative.Set1),
                           category_orders={variable: category_orders.get(variable)})
@@ -432,28 +592,95 @@ def density(variable,annee):
                                                  "Nombre d'accidents : %{customdata[1]}"
                                                  ]))
 
-    fig.update_layout(yaxis_title = "Nombre d'accidents",legend_title_text=variable_names.get(variable, variable))
+
+    fig.update_layout(yaxis_title = "Nombre d'accidents",legend_title_text=variable_names.get(variable, variable),
+                      clickmode="event+select", # This allows for selection of 1 element by cliking on it
+                      hovermode="closest")# Recomended if using select in clickmode 
+
+    # Construct title based on input
+    if annee==2004:
+        title = "Nombres d'accidents par an"
+    else:
+        title = "Nombres d'accidents par mois"
+
+    if title_comp != None:
+        title = title + " pour les " + title_comp
+
+    fig.update_layout(title=title)
+
     return fig
+
 
 # --------------------------------------------------------------------------------------------------
 # ----------------------------------------- barplot -----------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
-def bar(var, annee):
+
+def bar(var, annee, data = data, title_comp = None):
     if var =="all":
-        if annee ==  2004: # equivalent a all pour le slider
+        if annee == 2004: # equivalent a all pour le slider
             accidents = data.shape[0]
         else: 
             accidents = data[data["an"]==annee].shape[0]
         total_accidents = pd.DataFrame({'Total d\'accidents': [accidents]})
         fig = px.bar(total_accidents, y='Total d\'accidents') 
-        fig.update_layout(xaxis_title=annee,yaxis_title = "Nombre d'accidents")
     else:
-        if annee ==  2004: # equivalent a all pour le slider
+        if annee == 2004: # equivalent a all pour le slider
             accidents_par_var = data.groupby(var).size().reset_index(name="nb_accidents")
         else:
             accidents_par_var = data[data["an"] == annee].groupby(var).size().reset_index(name="nb_accidents")
         accidents_par_var = accidents_par_var.sort_values('nb_accidents', ascending=False)
         fig = px.bar(accidents_par_var, x=var, y="nb_accidents")
-        fig.update_layout(xaxis_title=variable_names.get(var, var),yaxis_title = "Nombre d'accidents",legend_title_text=variable_names.get(var, var))
+    fig.update_layout(xaxis_title = annee if annee != 2004 else "De 2005 à 2021",yaxis_title = "Nombre d'accidents",legend_title_text=variable_names.get(var, var),
+                          clickmode="event+select", # This allows for selection of 1 element by cliking on it
+                          hovermode="closest") # Recomended if using select in clickmode
+    
+    # Construct title based on input
+    if annee==2004:
+        title = "Nombres d'accidents sur la période 2005-2021"
+    else:
+        title = "Nombres d'accidents pour l'annee " + str(annee)
+
+    if title_comp != None:
+        title = title + " pour les " + title_comp
+    
+
+    fig.update_layout(title=title)
+
     return fig
+
+# --------------------------------------------------------------------------------------------------
+# ----------------------------------------- map -----------------------------------------------
+# --------------------------------------------------------------------------------------------------
+def carte(color, an, mois, jour, catr, cbsm, atm):
+        legend_title_selection = {"grav" : "Gravité de l'accident",
+                                "int" : "Type d'intersection ou<br>s'est produit l'accident",
+                                "lum" : "Conditions d'éclairage<br>du lieu de l'accident",
+                                "jour" : "Jour de la semaine"}
+
+        map = px.scatter_mapbox(build_selection(data, an, mois, jour, catr, cbsm, atm),#select_data(data,selection=select), 
+                            lat="lat", 
+                            lon="long", 
+                            mapbox_style="carto-positron", 
+                            center={"lat":46.6031, 'lon':1.8883},
+                            zoom=4.8,
+                            custom_data=["date","hrmn","trajet", "int", "lum", 'nom_commune'],
+                            color=unlist(color),
+                            #color_discrete_sequence=color_select(unlist(color)),
+                            color_discrete_map = {'Blessé léger':'steelblue', 'Blessé hospitalisé':'orange', 'Tué':'red', 'Indemne':'lightgreen'},
+                            height=700,
+                            width=1000
+                            )
+        
+        map.update_traces(hovertemplate="<br>".join(["Date : %{customdata[0]}", 
+                                                "Heure : %{customdata[1]}", 
+                                                "Type de trajet : %{customdata[2]}", 
+                                                "Intersection: %{customdata[3]}", 
+                                                "Conditions d'éclairage: %{customdata[4]}",
+                                                "Nom commune: %{customdata[5]}"])) # Replace the nan's in data set
+        
+        map.update_layout(legend_title_text = legend_title_selection[unlist(color)],
+                        margin={"r":0,"t":0,"l":0,"b":0}
+                        #legend={'traceorder':[1,2,3,5,4]}
+                        )
+        return map
