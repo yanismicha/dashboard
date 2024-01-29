@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 import pandas as pd 
 import plotly.express as px
 import plotly.graph_objects as go
+from statsmodels.tsa.seasonal import seasonal_decompose
 from plotly.subplots import make_subplots
 
 
@@ -231,38 +232,56 @@ def fig3():
     accidents_par_annee_mois= data.groupby(['an','mois']).size().reset_index(name='Nombre_d_accidents')
     # Création d'une variable date en fusionnant les années et les mois
     accidents_par_annee_mois['date'] = accidents_par_annee_mois['an'].astype(str) + '-' + accidents_par_annee_mois['mois'].astype(str)
+    # Décomposition de la série
+    result = seasonal_decompose(accidents_par_annee_mois['Nombre_d_accidents'], model='additive', period=12)  # période saisonnière de 12 mois
+    fig3 = go.Figure()
+    # Ajout de la composante observée
+    fig3.add_trace(go.Scatter(x=accidents_par_annee_mois['date'], y=result.observed,
+                             mode='lines', name='Composante observée',
+                             customdata=pd.DataFrame({'an': accidents_par_annee_mois['an'],
+                                                     'mois': accidents_par_annee_mois['mois'],
+                                                     'Nombre_d_accidents': accidents_par_annee_mois['Nombre_d_accidents']})))
     
-    # Création du graphique
-    fig3 = px.line(accidents_par_annee_mois, x='date', y='Nombre_d_accidents',
-                  labels={'date': 'Date', 'Nombre_d_accidents': 'Nombre d\'accidents'},
-                  height=600,
-                 custom_data = ['an','mois','Nombre_d_accidents'])
+    # Ajout de la composante saisonnière
+    fig3.add_trace(go.Scatter(x=accidents_par_annee_mois['date'], y=result.seasonal,
+                             mode='lines', name='Saisonnalité',
+                             customdata=pd.DataFrame({'an': accidents_par_annee_mois['an'],
+                                                     'mois': accidents_par_annee_mois['mois'],
+                                                     'Nombre_d_accidents': accidents_par_annee_mois['Nombre_d_accidents']})))
     
-    # Ajout de la courbe lissé pour observer une tendance
-    smoothed_data = accidents_par_annee_mois['Nombre_d_accidents'].rolling(window=12).mean() # 12 moyenne mobile pour enlever les saisonnalités annuelles
-    fig3.add_trace(go.Scatter(x=accidents_par_annee_mois['date'], y=smoothed_data,
-                             mode='lines', name='Tendance lissée sur 12 mois'))
+    # Ajout de la composante de tendance
+    fig3.add_trace(go.Scatter(x=accidents_par_annee_mois['date'], y=result.trend,
+                             mode='lines', name='Tendance',
+                             customdata=pd.DataFrame({'an': accidents_par_annee_mois['an'],
+                                                     'mois': accidents_par_annee_mois['mois'],
+                                                     'Nombre_d_accidents': accidents_par_annee_mois['Nombre_d_accidents']})))
+    
+    # Ajout de la composante résiduelle
+    fig3.add_trace(go.Scatter(x=accidents_par_annee_mois['date'], y=result.resid,
+                             mode='lines', name='Résidus',
+                             customdata=pd.DataFrame({'an': accidents_par_annee_mois['an'],
+                                                     'mois': accidents_par_annee_mois['mois'],
+                                                     'Nombre_d_accidents': accidents_par_annee_mois['Nombre_d_accidents']})))
+    
     # Titre
-    fig3.update_layout(margin = {"r":0,"t":30,"l":0,"b":0},
-                     title={
-            'text': "<b>Évolution temporelle avec lissage sur 12 mois</b>",
-            'y': 0.98,
-            'x': 0.5,
-            'xanchor': 'center',
-            'yanchor': 'top',
-            'font': {'size': 20,'family': 'Arial, sans-serif', 'color': 'black'} 
-        })
+    fig3.update_layout(margin={"r": 0, "t": 30, "l": 0, "b": 0},
+                       title={
+                           'text': "<b>Évolution temporelle avec lissage sur 12 mois</b>",
+                           'y': 0.98,
+                           'x': 0.5,
+                           'xanchor': 'center',
+                           'yanchor': 'top',
+                           'font': {'size': 20, 'family': 'Arial, sans-serif', 'color': 'black'}
+                       })
     
-    #  slider pour zoomer sur une période donnée
+    # Slider pour zoomer sur une période donnée
     fig3.update_xaxes(rangeslider_visible=True)
     
     # Personnalisation du popup
     fig3.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
-                                                 "Mois : %{customdata[1]}",
-                                                 "Nombre d'accidents : %{customdata[2]}"
-                                                 ]),selector= 0)
-    
-    # Afficher la figure
+                                                  "Mois : %{customdata[1]}",
+                                                  "Nombre d'accidents : %{customdata[2]}"
+                                                  ]))
     return fig3
 
 
