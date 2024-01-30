@@ -1,102 +1,11 @@
 import dash 
 from dash import Dash,dcc,html,callback,Input,Output,State
-from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import pandas as pd 
 import plotly.express as px
 import Figure as fig
 import pages as pag
 
-
-def unlist(input):
-    """
-    Used to unpack dropdown output if it is in a list. Only return first element in list.
-     
-    Parameters:
-    - input (string, numeric, vector): Output from dropdown menu
-
-    Returns:
-    string OR numeric: Returns the input outside of the array
-    """
-    if isinstance(input, list):
-        return input[0]
-    return input
-    
-def select_data(data: pd.DataFrame, selection: dict):
-    """
-    Filters the given data so as to only keep rows containing the specified modalities
-        
-    Parameters:
-    - data (pandas dataframe): The data frame the data is to extracted from
-
-    - selection (dictionary): Dictionnary containing columns and modalities to keep. Only row with the given modalities will be kept.
-                              Dict format: {'column_name1' : ['modality1', 'modality2'],
-                                            'column_name1' : ['modality1', 'modality2']}
-
-    Returns:
-    pandas dataframe: Dataframe containing only rows with the specified modalities
-    """
-    out = data
-
-    if selection != {} and selection != 'all':
-        for i in selection.items():
-            out = out[out[i[0]].isin(i[1])]
-            
-    return out
-    
-def build_selection(data: pd.DataFrame, 
-                    an = 'all',
-                    mois = 'all',
-                    jour = 'all',
-                    catr = 'all',
-                    obsm = 'all',
-                    atm = 'all'
-                    ):
-        
-    """
-    Builds the dictionnary used to select the data in the given data frame using the select_data function.
-    Ment to be used with dropdown menus. Each parameter should be given a vector of modalites for that column.
-        
-    Parameters:
-    - data (pandas dataframe): The data frame the data is to extracted from.
-
-    - ans ('all' or [] or vector): Vector containing all the modalities to be used to select ans
-
-    - mois ('all' or [] or vector): Vector containing all the modalities to be used to select mois
-
-    - jour ('all' or [] or vector): Vector containing all the modalities to be used to select jour
-
-    - catr ('all' or [] or vector): Vector containing all the modalities to be used to select catr
-
-    - obsm ('all' or [] or vector): Vector containing all the modalities to be used to select obsm
-
-    - atm ('all' or [] or vector): Vector containing all the modalities to be used to select atm
-
-    Returns:
-    pandas dataframe: Dataframe containing only rows with the specified modalities
-    """
-
-    out = {}
-
-    if an != 'all' and an != []:
-        out['an']=an
-
-    if mois != 'all' and mois != []:
-        out['mois']=mois
-            
-    if jour != 'all' and jour != []:
-        out['jour']=jour
-
-    if catr != 'all' and catr != []:
-        out['catr']=catr
-
-    if obsm != 'all' and obsm != []:
-        out['obsm']=obsm
-
-    if atm != 'all' and atm != []:
-        out['atm']=atm
-
-    return select_data(data, out)
 
 
 
@@ -119,6 +28,7 @@ def get_legend_groups(figure):
             legend_groups.add(trace['legendgroup'])
 
     return legend_groups
+
 
 
 def split_fig(figure):
@@ -185,12 +95,15 @@ def unpack_mods(data_obj: tuple):
     
     return out
 
+
+
 # ------------------------------------------------------------------------------------------------------
 # --------------------------------- Callback functions -------------------------------------------------
 # ------------------------------------------------------------------------------------------------------
 
-def get_callbacks(app):
 
+
+def get_callbacks(app):
 
 # ------------------------------------------------------------------------------------------------------
 # --------------------------------- Callback des graphiques -------------------------------------------------
@@ -201,20 +114,24 @@ def get_callbacks(app):
     )
     def update_speed_animation(speed_animation):
         return fig.fig2(speed_animation)
+        
     
     # ------------ Page 2 Line chart ------------------ 
     @callback(
         Output('graph4', 'figure'),
         [Input('variable-dropdown', 'value'),
          Input('annee-slider','value'),
-         Input('graph6', 'clickData')
+         Input('graph6', 'clickData'),
+         Input('modalite-dropdown', 'value')
         ]
     )
-    def update_density(selected_var,selected_annee, clickData):
+    def update_density(selected_var,selected_annee, clickData, modalite_dropdown):
         # Filters data if clickData Exists
         if clickData is not None:
-
             filtered_data = fig.data[fig.data['age_group'] == clickData['points'][0]["label"]]
+            # Only fiters this if pie chart is cliked
+            if modalite_dropdown != 'all':
+                filtered_data = filtered_data[filtered_data['grav'] == modalite_dropdown]
 
             return fig.density(selected_var,selected_annee, filtered_data, " " + str(clickData['points'][0]["label"]).lower())# Set title comp to the filtered value
         
@@ -225,65 +142,37 @@ def get_callbacks(app):
         Output('graph5', 'figure'),
         [Input('variable-dropdown', 'value'),
          Input('annee-slider','value'),
-         Input('graph6', 'clickData')
+         Input('graph6', 'clickData'),
+         Input('modalite-dropdown', 'value'),
+         Input('graph6', 'legend_click') # Testing
         ]
     )
-    def update_bar(selected_var,selected_annee, clickData):
+    def update_bar(selected_var,selected_annee, clickData, modalite_dropdown, test):
         # Filters data if clickData Exists
         if clickData is not None:
-
             filtered_data = fig.data[fig.data['age_group'] == clickData['points'][0]["label"]]
+            # Only fiters this if pie chart is cliked
+            if modalite_dropdown != 'all':
+                filtered_data = filtered_data[filtered_data['grav'] == modalite_dropdown]
 
             return fig.bar(selected_var, selected_annee, filtered_data, str(clickData['points'][0]["label"]).lower())
 
 
         return fig.bar(selected_var, selected_annee)
-    
-    # --------- Page 2 Pie chart ----------------------
     @callback(
         Output('graph6', 'figure'),
         [Input('modalite-dropdown', 'value'),
          Input('annee-slider','value'),
-         #Input('graph6','clickData'), # Used to change the color of selected data
         ]
     )
     def update_pie(selected_modalite,selected_annee):
-
-        #Used clickData to determine the color to be used for the pie chart upon selecting one
-
         return fig.pie_age_grav(selected_modalite,selected_annee) 
-
-
-    # ------------- Testing callback ---------------------------------------------
-    @callback(
-        Output('test-out1', 'children'),
-        [
-         Input('graph6', 'clickData')
-        ]
-    )
-    def update_bar(clickData):
-        if clickData is None:
-            return "ClickData is None."
-        return clickData['points'][0]['label']
-    
-
-    @callback(
-        Output('test-out2', 'children'),
-        [
-         Input('graph6', 'restyleData')
-        ]
-    )
-    def update_bar(clickData):
-        if clickData is None:
-            return "ClickData is None."
-        return clickData['points'][0]['label']
-
 
 # ------------------------------------------------------------------------------------------------------
 # --------------------------------- Callback de la carte -------------------------------------------------
 # ------------------------------------------------------------------------------------------------------
 
-    @app.callback(
+    @callback(
         Output('map', 'figure'),
         [Input('dropdown_color', 'value'),
         Input('dropdown_an', 'value'),
@@ -294,39 +183,8 @@ def get_callbacks(app):
         Input('dropdown_atm', 'value')]
     )
     def update_map(color, an, mois, jour, catr, cbsm, atm):
-    
-        legend_title_selection = {"grav" : "Gravité de l'accident",
-                                "int" : "Type d'intersection ou<br>c'est produit l'accident",
-                                "lum" : "Conditions d'éclairage<br>du lieu de l'accident",
-                                "jour" : "Jour de la semaine"}
-
-        fig_map = px.scatter_mapbox(build_selection(fig.data, an, mois, jour, catr, cbsm, atm),#select_data(data,selection=select), 
-                            lat="lat", 
-                            lon="long", 
-                            mapbox_style="carto-positron", 
-                            center={"lat":46.18, 'lon':4.7},
-                            zoom=3.8,
-                            custom_data=["date","hrmn","trajet", "int", "lum", 'nom_commune'],
-                            color=unlist(color),
-                            #color_discrete_sequence=color_select(unlist(color)),
-                            color_discrete_map = {'Blessé léger':'steelblue', 'Blessé hospitalisé':'orange', 'Tué':'red', 'Indemne':'lightgreen'},
-                            height=570,
-                            width=1000
-                            )
+        return fig.carte(color, an, mois, jour, catr, cbsm, atm)
         
-        fig_map.update_traces(hovertemplate="<br>".join(["Date : %{customdata[0]}", 
-                                                "Heure : %{customdata[1]}", 
-                                                "Type de trajet : %{customdata[2]}", 
-                                                "Intersection: %{customdata[3]}", 
-                                                "Conditions d'éclairage: %{customdata[4]}",
-                                                "Nom commune: %{customdata[5]}"])) # Replace the nan's in data set
-        
-        fig_map.update_layout(legend_title_text = legend_title_selection[unlist(color)],
-                        margin={"r":0,"t":0,"l":0,"b":0}
-                        #legend={'traceorder':[1,2,3,5,4]}
-                        )
-
-        return fig_map
     
 # ------------------------------------------------------------------------------------------------------
 # --------------------------------- Callback ????????? -------------------------------------------------
@@ -379,7 +237,7 @@ def get_callbacks(app):
         ]
     )
     def toggle_sidebar(n, nclick):
-        if n: 
+        if n:
             if nclick == "SHOW":
                 sidebar_style = fig.SIDEBAR_HIDEN
                 content_style = fig.CONTENT_STYLE1
@@ -389,8 +247,8 @@ def get_callbacks(app):
                 content_style = fig.CONTENT_STYLE
                 cur_nclick = "SHOW"
         else:
-            sidebar_style = fig.SIDEBAR_HIDEN #fig.SIDEBAR_STYLE
-            content_style = fig.CONTENT_STYLE1 #fig.CONTENT_STYLE
+            sidebar_style = fig.SIDEBAR_STYLE
+            content_style = fig.CONTENT_STYLE
             cur_nclick = 'SHOW'
 
         return sidebar_style, content_style, cur_nclick
@@ -403,15 +261,15 @@ def get_callbacks(app):
                   [Input("url", "pathname")])
     def render_page_content(pathname):
         # Page d'acceuil
-        if pathname in ["/", "/page-main"]:
+        if pathname in ["/", "/page-1/1"]:
             return pag.page_main
 
         # Page avec carte
+        elif pathname == "/page-1/2":
+            return pag.page_usager
+        
         elif pathname == "/page-map":
             return pag.page_map
-        
-        elif pathname == "/page-user":
-            return pag.page_usager
         
         elif pathname == "/page-2/2":
             return html.P("No way! This is page 2.2!")
@@ -425,127 +283,3 @@ def get_callbacks(app):
             ],
             className="p-3 bg-light rounded-3",
         )
-    
-
-# ------------------------------------------------------------------------------------------------------
-# --------------------------------- Get selected data test ----------------------------------
-# ------------------------------------------------------------------------------------------------------
-
-    @app.callback(
-        Output('selected-data-output', 'children'),
-        [Input('ex-graph_test', 'selectedData')]
-    )
-    def display_selected_data(selected_data):
-        if selected_data is None:
-            return 'No data selected.'
-
-        selected_points = selected_data['points']
-        if not selected_points:
-            return 'No points selected.'
-
-        selected_values = [f"X value: {point['x']}, Y value: {point['y']}" for point in selected_points]
-        return html.Ul([html.Li(value) for value in selected_values])
-
-
-# ------------------------------------------------------------------------------------------------------
-# --------------------------------- Get selected legend ----------------------------------
-# ------------------------------------------------------------------------------------------------------
-
-    @app.callback(
-        Output('selected-legend-output', 'children'),
-        [Input('ex-graph_test', 'selectedData')]
-    )
-    def display_selected_legend(selected_data):
-        if selected_data is None:
-            return 'No legend items selected.'
-
-        selected_legend_indices = []
-        for trace in fig.fig_seri_reg['data']:
-            if 'selectedpoints' in trace['legend']:
-                selected_legend_indices.extend(trace['legend']['selectedpoints'])
-
-        if not selected_legend_indices:
-            return 'No legend items selected.'
-
-        return f'Selected legend indices: {selected_legend_indices}'
-    
-# ----------------------------------------------------------------------------------------------------------
-    '''
-    @app.callback(
-        Output('ex-graph_test2', 'figure'),
-        #Output('test-output','children'),
-        [Input('ex-graph_test1', 'selectedData')]
-    )
-    def update_scatter_plot2(selected_data):
-        if selected_data is None or 'points' not in selected_data:
-            # No points selected, return the original figure
-            return fig.fig_seri_reg(fig.data)
-
-        # Extract the selected species from the points in the first scatter plot
-        selected_reg = [point['legendgroup'] for point in selected_data['points']]#[point['text'] for point in selected_data['points']]
-
-        # Filter the data for the second scatter plot based on the selected species
-        filtered_df = fig.data[fig.data['region_name'].isin(selected_reg)]
-
-        # Create a new figure for the second scatter plot with the filtered data
-        filtered_fig_seri_reg = fig.fig_seri_reg(filtered_df)
-
-        return filtered_fig_seri_reg
-        '''
-
-
-    
-
-    # ------------------------------------------------------------------------------------------------------
-    # --------------------------------- Graph filtering functions ----------------------------------
-    # ------------------------------------------------------------------------------------------------------
-    
-    #pd.read_json("").query()
-    '''
-    @callback(inputs=[Input("data-page-usager", "data")],
-              output=[Output("graph5", "figure"),
-                      Output("graph6", "figure")])
-    def filter_data_and_plot_group1(data):
-        data = pd.read_json(orient="split")
-        
-        return fig.bar(selected_var,selected_annee), fig.pie_age_grav(selected_modalite,selected_annee)
-    '''
-    #  Graph filtering functions are organized with one per connection group
-
-
-    # ------------------------------------------------------------------------------------------------------
-    # --------------------------------- Test graphs ----------------------------------
-    # ------------------------------------------------------------------------------------------------------
-
-    
-    # Selecting 
-    @callback(
-        Output('ex-graph_test2', 'figure'),
-        #Output('test-output','children'),
-        Input('ex-graph_test1', 'selectedData'),
-        Input('ex-graph_test1', 'relayoutData'),
-        Input('ex-graph_test1', 'clickData'))
-    def update_x_timeseries(selectedData, relayoutData, clickData):
-        # Vecteur containing the the maximum and minimum values ploted on each axis
-        x_range = relayoutData_transform(relayoutData)[0]
-        y_range = relayoutData_transform(relayoutData)[1]
-
-        if selectedData is None or len(selectedData['points']) == 0:
-            return fig.fig_seri_reg(fig.data, x_range, y_range)
-        
-        dff = fig.data.copy(deep=True)
-
-        # Filter data based on the first region in selection region selected
-        reg_name = selectedData['points'][0]['customdata'][1]
-        #reg_name = unpack_mods(selectedData)
-        dff = dff[dff['region_name'] == reg_name] # replece == with in
-
-        # Filter data based on cliked data
-        #if clickData is None or len(clickData['points']) == 0:
-        #    dff = dff[dff['col'] == clickData['points'][0]['customdata'][0] and get row]
-        """
-        if clickData != None or len(clickData['points']) != 0:
-            clicked_legend_item = clickData['points'][0]['label']
-            filtered_df = dff[dff['species'] == clicked_legend_item]
-        """
-        return fig.fig_seri_reg(dff, x_range, y_range)
