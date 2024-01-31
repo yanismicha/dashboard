@@ -684,3 +684,6 @@ def carte(color, an, mois, jour, catr, cbsm, atm):
                         #legend={'traceorder':[1,2,3,5,4]}
                         )
         return map
+
+#def carte_region_dep():
+    

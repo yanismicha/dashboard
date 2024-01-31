@@ -48,6 +48,7 @@ page_main = html.Div([
                         ],
                         target='div-summary',
                         trigger="hover",
+                        placement="top"
                  ),
                 html.Div(
                 children = [
@@ -127,6 +128,7 @@ page_usager = html.Div([
                             ],
                             target='div-title',
                             trigger="hover",
+                            placement="top"
                 ),
                 html.Div(
                     children = [
@@ -187,6 +189,7 @@ page_usager = html.Div([
                             ],
                             target='annee-slider',
                             trigger="hover",
+                            placement = "bottom"
                         )
                     ],
                     style={
@@ -228,7 +231,7 @@ page_usager = html.Div([
 # ----------------------------------------- La carte -----------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
-fonte = {'color': 'white', "font-weight": "bold", "margin" : "0 0 1% 0"}
+fonte = {'color': 'black', "font-weight": "bold", "margin" : "0 0 1% 0"}
 
 drop_style = {"margin" : "0 0 4% 0",'width': '70%'}
 
@@ -314,5 +317,32 @@ page_map = html.Div([
                             )
                     
             
-],style={'display': 'flex', 'flexDirection': 'row'})
-])
+                ],style={'display': 'flex', 'flexDirection': 'row'})
+            ],
+            style={
+                "border": "0px solid black",
+                "padding": "10px 20px",
+                "border-radius": "25px",
+                "text-align": "left",
+                "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
+                "background": "#ffffff",
+                "margin-bottom": "20px"
+                        
+            }
+)
+                            
+
+page_map_region_dep = html.Div([
+    dcc.Graph(id="map_region")
+],
+                                style={
+                                        "border": "0px solid black",
+                                        "padding": "10px 20px",
+                                        "border-radius": "25px",
+                                        "text-align": "left",
+                                        "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
+                                        "background": "#ffffff",
+                                        "margin-bottom": "20px"
+                                }
+                        
+                              )
