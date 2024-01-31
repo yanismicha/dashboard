@@ -48,12 +48,13 @@ page_main = html.Div([
                         ],
                         target='div-summary',
                         trigger="hover",
+                        placement="top"
                  ),
                 html.Div(
                 children = [
-                     html.Div(
+                     dbc.Row(
                     [
-                        html.Div(
+                        dbc.Col(
                             [
                                  dcc.Dropdown(
                                         id='speed-dropdown',
@@ -73,20 +74,14 @@ page_main = html.Div([
                                         trigger="hover",
                                 ),
                                 dcc.Graph(id='graph2')
-                            ],
-                            style={'margin': '0% 2% 0% 0%'}),
-                        html.Div(dcc.Graph(id='graph1',figure=fig.fig1())),
-                    ], 
-                    style={# This aligns it horizontaly
-                           'display': 'flex', 
-                           'flexDirection': 'row', 
-                           'alignItems': 'center', 
-                           # This aligns it verticaly
-                           'justify-content': 'center'}),
+                            ], width=6),
+                        dbc.Col(dcc.Graph(id='graph1',figure=fig.fig1()), width=6),
+                    ],
+                     ),
                 ],
                 style={
                         "border": "0px solid black",
-                        "padding": "10px 0px",
+                        "padding": "10px 20px",
                         "border-radius": "25px",
                         "text-align": "center",
                         "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
@@ -133,6 +128,7 @@ page_usager = html.Div([
                             ],
                             target='div-title',
                             trigger="hover",
+                            placement="top"
                 ),
                 html.Div(
                     children = [
@@ -183,7 +179,7 @@ page_usager = html.Div([
                             fig.data['an'].max(),
                             step=None,
                             id='annee-slider',
-                            value=fig.data['an'].min(), # Régler le point de départ
+                            value=fig.data['an'].min(),
                             marks = {**{2004: 'all'}, **{year: str(year) for year in range(2005, 2022)}}
                         ),
                         dbc.Popover(
@@ -193,6 +189,7 @@ page_usager = html.Div([
                             ],
                             target='annee-slider',
                             trigger="hover",
+                            placement = "bottom"
                         )
                     ],
                     style={
@@ -320,5 +317,32 @@ page_map = html.Div([
                             )
                     
             
-],style={'display': 'flex', 'flexDirection': 'row'})
-])
+                ],style={'display': 'flex', 'flexDirection': 'row'})
+            ],
+            style={
+                "border": "0px solid black",
+                "padding": "10px 20px",
+                "border-radius": "25px",
+                "text-align": "left",
+                "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
+                "background": "#ffffff",
+                "margin-bottom": "20px"
+                        
+            }
+)
+                            
+
+page_map_region_dep = html.Div([
+    dcc.Graph(id="map_region")
+],
+                                style={
+                                        "border": "0px solid black",
+                                        "padding": "10px 20px",
+                                        "border-radius": "25px",
+                                        "text-align": "left",
+                                        "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
+                                        "background": "#ffffff",
+                                        "margin-bottom": "20px"
+                                }
+                        
+                              )

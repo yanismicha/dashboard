@@ -326,7 +326,7 @@ def fig2(speed_animation):
                   markers=True,animation_frame="an"
                  ,custom_data=['an','mois','Nombre_d_accidents'])
     # taille de la figure (largeur, hauteur)
-    fig2.update_layout(width=700, height=500)
+    #fig2.update_layout(width=700, height=500)
     #  ajout titre et axes
     fig2.update_layout(
                       xaxis_title="Mois",
@@ -388,7 +388,7 @@ def fig3():
                                                      'Nombre_d_accidents': accidents_par_annee_mois['Nombre_d_accidents']})))
     
     # Ajout de la composante saisonnière
-    fig3.add_trace(go.Scatter(x=accidents_par_annee_mois['date'], y=result.seasonal,
+    fig3.add_trace(go.Scatter(x=accidents_par_annee_mois['date'], y=result.seasonal, visible='legendonly',
                              mode='lines', name='Saisonnalité',
                              customdata=pd.DataFrame({'an': accidents_par_annee_mois['an'],
                                                      'mois': accidents_par_annee_mois['mois'],
@@ -402,7 +402,7 @@ def fig3():
                                                      'Nombre_d_accidents': accidents_par_annee_mois['Nombre_d_accidents']})))
     
     # Ajout de la composante résiduelle
-    fig3.add_trace(go.Scatter(x=accidents_par_annee_mois['date'], y=result.resid,
+    fig3.add_trace(go.Scatter(x=accidents_par_annee_mois['date'], y=result.resid,  visible='legendonly',
                              mode='lines', name='Résidus',
                              customdata=pd.DataFrame({'an': accidents_par_annee_mois['an'],
                                                      'mois': accidents_par_annee_mois['mois'],
