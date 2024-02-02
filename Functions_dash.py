@@ -7,8 +7,6 @@ import Figure as fig
 import pages as pag
 
 
-
-
 def get_legend_groups(figure):
     """
     Returns a set containing all the legend groups in string format.
@@ -94,9 +92,15 @@ def unpack_mods(data_obj: tuple):
         out.append(point['legendgroup'])
     
     return out
+"""
+def filter_visible_traces(fig_filter_from: plotly.graph_objs._figure.Figure):
 
 
+    visible_trace = [trace for trace in fig_filter_from.select_traces(selector={'visible':'legendonly'})]
 
+    return fig.data[data[]]
+"""
+    
 # ------------------------------------------------------------------------------------------------------
 # --------------------------------- Callback functions -------------------------------------------------
 # ------------------------------------------------------------------------------------------------------
@@ -122,17 +126,18 @@ def get_callbacks(app):
         [Input('variable-dropdown', 'value'),
          Input('annee-slider','value'),
          Input('graph6', 'clickData'),
-         Input('modalite-dropdown', 'value')
+         Input('modalite-dropdown', 'value'),
+         Input('graph6', 'figure')
         ]
     )
-    def update_density(selected_var,selected_annee, clickData, modalite_dropdown):
+    def update_density(selected_var,selected_annee, clickData, modalite_dropdown, filter_figure):
         # Filters data if clickData Exists
         if clickData is not None:
             filtered_data = fig.data[fig.data['age_group'] == clickData['points'][0]["label"]]
             # Only fiters this if pie chart is cliked
             if modalite_dropdown != 'all':
                 filtered_data = filtered_data[filtered_data['grav'] == modalite_dropdown]
-
+            
             return fig.density(selected_var,selected_annee, filtered_data, " " + str(clickData['points'][0]["label"]).lower())# Set title comp to the filtered value
         
         return fig.density(selected_var,selected_annee)
@@ -283,3 +288,42 @@ def get_callbacks(app):
             ],
             className="p-3 bg-light rounded-3",
         )
+    
+
+    # ------------------------------------------------------------------------------------------------------
+    # --------------------------------- Callback region, departement selection -----------------------------
+    # ------------------------------------------------------------------------------------------------------
+
+    @callback(Output('zone-selection', 'disabled'),
+              Output('zone-selection', 'options'),
+              Output('zone-selection', 'placeholder'),
+              Input('zone-data-filter', 'value'))
+    def select_geo_zone(value):
+        if value != 'all':
+
+            all_options = {'all': [],
+                           'reg': ['84 Auvergne-Rhône-Alpes', 
+                                   '32 Hauts-de-France', 
+                                   '93 Provence-Alpes-Côte d\'Azur',
+                                   '75 Nouvelle-Aquitaine', 
+                                   '24 Centre-Val de Loire', 
+                                   '27 Bourgogne-Franche-Comté',
+                                   '28 Normandy', '53 Brittany', 
+                                   '76 Occitanie', 
+                                   '52 Pays de la Loire',
+                                   '44 Grand Est', 
+                                   '11 Île-de-France'],
+                           'dep': fig.data['dep'].unique()
+                           }
+
+            if value == "reg":
+                text = "e région"
+
+            else:
+                text = " département"
+
+            return False, all_options[value], "Sélectionnez un" + text
+        return True, [], ""
+    
+
+   

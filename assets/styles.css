@@ -1,0 +1,95 @@
+/*Variables*/
+:root {
+    --navbar-text-color: grey;
+    --navbar-item-background-color: rgba(33,37,41,1);
+    --navbar-item-border-color: #6c757d;
+    --dropdown-option-hover-background: steelblue;
+}
+
+
+.main {
+    color: white;
+}
+
+
+
+/*https://community.plotly.com/t/change-textcolor-for-dropdown-menu/35230*/
+
+/*.navbar {
+    /*display: flex;*/ 
+    /*flexDirection: row*/
+/*}*/
+
+#zone-data-filter .Select-control{
+    color: var(--navbar-item-background-color) !important;
+    border-color: var(--navbar-item-border-color) !important;
+    background-color: var(--navbar-item-background-color) !important;
+    width: 355% !important;
+    margin-left: 10%
+}
+
+#zone-selection .Select-control{
+    color: var(--navbar-item-background-color) !important;
+    border-color: var(--navbar-item-border-color) !important;
+    background-color: var(--navbar-item-background-color) !important;
+    width: 355% !important;
+    margin-left: 270%
+}
+
+/* Set dropdown options size*/
+#zone-data-filter .Select-menu-outer{
+    width:300% !important;
+    margin-left: 10%
+  }
+
+#zone-selection .Select-menu-outer{
+    width:600% !important;
+    margin-left: 270%
+}
+
+
+/*Text afficher dans dropdown*/
+.Select-value-label {
+    color: var(--navbar-text-color) !important;
+}
+
+/* dropdown menu options */
+.VirtualizedSelectOption {
+    background-color: var(--navbar-item-background-color);
+    color: white;
+ }
+
+ .Select--single > .Select-control .Select-value, .Select-placeholder {
+    border: 1px solid grey;
+    border-radius: 4px;
+}
+
+#zone-selection .Select-input{
+    height: 100%;
+}
+
+/* dropdown menu hover effect */
+.VirtualizedSelectFocusedOption {
+    background-color: var(--dropdown-option-hover-background);
+    opacity: .7;
+}
+
+
+/* border on focus - default is blue
+ * shadow box around input box.  default is blue
+ *//*
+.is-focused:not(.is-open) > .Select-control {
+  border-color: red; 
+  box-shadow: none;
+}
+
+/* Select first dropdown option*//*
+.Dropdown-1, .Select-value-label {
+    color: blue !important;
+}
+
+
+/* this colors the input box text and x  of multi dropdown*//*
+.Select--multi .Select-value {
+  color: white;
+}*/
