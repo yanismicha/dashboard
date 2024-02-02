@@ -19,24 +19,7 @@ page_main = html.Div([
                             fig.nb_mort,
                             fig.nb_hospital,
                     ],
-                    style={
-                        # My add
-                        'text-align': 'center', 
-                           'height': '100%', 
-                           'display': 'flex', 
-                           'flex-direction': 'row', 
-                           'justify-content': 'center', 
-                           'align-items': 'center',
-                        # default style
-                        "border": "0px solid black",
-                        "padding": "10px 20px",
-                        "border-radius": "25px",
-                        "text-align": "center",
-                        "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-                        "background": "#ffffff",
-                        "margin-bottom": "20px",
-                        "height": "200px"
-                    },
+                    style=fig.NUMBER_DIV_STYLE,
                 ),
                  dbc.Popover(
                         [
@@ -56,7 +39,7 @@ page_main = html.Div([
                     [
                         dbc.Col(
                             [
-                                 dcc.Dropdown(
+                                dcc.Dropdown(
                                         id='speed-dropdown',
                                         options=[
                                             {'label': speed, 'value': speed} 
@@ -79,27 +62,11 @@ page_main = html.Div([
                     ],
                      ),
                 ],
-                style={
-                        "border": "0px solid black",
-                        "padding": "10px 20px",
-                        "border-radius": "25px",
-                        "text-align": "center",
-                        "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-                        "background": "#ffffff",
-                        "margin-bottom": "20px"
-                    }
+                style=fig.DIV_STYLE
             ),
              html.Div(
                 dcc.Graph(id='graph3',figure=fig.fig3()),
-                style={
-                        "border": "0px solid black",
-                        "padding": "10px 20px",
-                        "border-radius": "25px",
-                        "text-align": "center",
-                        "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-                        "background": "#ffffff",
-                        "margin-bottom": "20px"
-                    }
+                style=fig.DIV_STYLE,
             ),
             
         ])
@@ -110,16 +77,7 @@ page_main = html.Div([
 page_usager = html.Div([
                 html.Div(
                     html.H1("Description des accidents et état/situation des usagers mis en cause",id = "div-title"),
-                    style={
-                        "border": "0px solid black",
-                        "padding": "10px 20px",
-                        "border-radius": "25px",
-                        "text-align": "center",
-                        "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-                        "background": "#ffffff",
-                        "margin-bottom": "20px",
-                        "font-family": "Montserrat, sans-serif",
-                    },
+                    style=fig.DIV_STYLE,
                 ),
                 dbc.Popover(
                             [
@@ -192,15 +150,7 @@ page_usager = html.Div([
                             placement = "bottom"
                         )
                     ],
-                    style={
-                            "border": "0px solid black",
-                            "padding": "10px 20px",
-                            "border-radius": "25px",
-                            "text-align": "left",
-                            "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-                            "background": "#ffffff",
-                            "margin-bottom": "20px"
-                        }
+                    style=fig.DIV_STYLE
                 ),
                  html.Div([
                      "Gravité de la blessure:",
@@ -208,19 +158,12 @@ page_usager = html.Div([
                         id='modalite-dropdown',
                         options=[{'label': modalite, 'value': modalite} for modalite in ["all"] + fig.data["grav"].unique().tolist()],
                         value=fig.data['grav'].unique()[2],  
-                        style={'width': '50%'}
+                        style={'width': '50%','margin-bottom': '10px'}
                     ),
+                    dbc.Button("Reset",id="reset-button",color="secondary", disabled=True),
                     dcc.Graph(id='graph6'),
                  ],
-                    style={
-                            "border": "0px solid black",
-                            "padding": "10px 20px",
-                            "border-radius": "25px",
-                            "text-align": "left",
-                            "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-                            "background": "#ffffff",
-                            "margin-bottom": "20px"
-                        }
+                    style=fig.DIV_STYLE
                  ),
                 
             ])
@@ -243,7 +186,7 @@ page_map = html.Div([
                     
                     html.Div(id="selection", className="float-child",
                             children=[
-                                      html.Div(children=["Selectionner l'année"], style=fonte),
+                                      html.Div(children=["Selectionnez l'année:"], style=fonte),
                                       dcc.Dropdown(id='dropdown_an',
                                                   options=fig.mod,
                                                   value="all",
@@ -252,7 +195,7 @@ page_map = html.Div([
                                                   style= drop_style),
                                       #html.Div(id='var_select_text',style={'color': 'white'}),
                                       
-                                      html.Div(children=["Selectionner le mois"], style=fonte),
+                                      html.Div(children=["Selectionnez le mois:"], style=fonte),
                                       dcc.Dropdown(id='dropdown_mois',
                                                   options=fig.data['mois'].cat.categories,
                                                   value="all", 
@@ -260,7 +203,7 @@ page_map = html.Div([
                                                   placeholder="all",
                                                   style= drop_style),
                                       
-                                      html.Div(children=["Selectionner le jour"], style=fonte),
+                                      html.Div(children=["Selectionnez le jour:"], style=fonte),
                                       dcc.Dropdown(id='dropdown_jour',
                                                   options=fig.data['jour'].cat.categories,
                                                   value="all", 
@@ -268,7 +211,7 @@ page_map = html.Div([
                                                   placeholder="all",
                                                   style= drop_style),
 
-                                      html.Div(children=["Selectionner le type de route"], style=fonte),
+                                      html.Div(children=["Selectionnez le type de route:"], style=fonte),
                                       dcc.Dropdown(id='dropdown_catr',
                                                   options=fig.data['catr'].unique(),
                                                   value="all", 
@@ -276,7 +219,7 @@ page_map = html.Div([
                                                   placeholder="all",
                                                   style= drop_style),
 
-                                      html.Div(children=["Selectionner l'obstacle rencontré"], style=fonte),
+                                      html.Div(children=["Selectionnez l'obstacle rencontré lors de l'accident:"], style=fonte),
                                       dcc.Dropdown(id='dropdown_obsm',
                                                   options=fig.data['obsm'].unique(),
                                                   value="all", 
@@ -284,7 +227,7 @@ page_map = html.Div([
                                                   placeholder="all",
                                                   style= drop_style),
 
-                                      html.Div(children=["Selectionner le temps météorologique"], style=fonte),
+                                      html.Div(children=["Selectionnez le temps météorologique:"], style=fonte),
                                       dcc.Dropdown(id='dropdown_atm',
                                                   options=fig.data['atm'].unique(),
                                                   value="all", 
@@ -295,7 +238,7 @@ page_map = html.Div([
 
 
                                       # Color ----------------------------------------------------------------------------------
-                                      html.Div(children=["Selectionner la variable à être représentée en couleur"], style=fonte),
+                                      html.Div(children=["Selectionnez la variable à être représentée en couleur:"], style=fonte),
                                       dcc.Dropdown(id='dropdown_color',
                                                   options=[{"label":"Gravité de l'accident","value":'grav'},
                                                           {"label":"Aglomération","value":'agg'}, 
@@ -319,30 +262,36 @@ page_map = html.Div([
             
                 ],style={'display': 'flex', 'flexDirection': 'row'})
             ],
-            style={
-                "border": "0px solid black",
-                "padding": "10px 20px",
-                "border-radius": "25px",
-                "text-align": "left",
-                "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-                "background": "#ffffff",
-                "margin-bottom": "20px"
-                        
-            }
+            style=fig.DIV_STYLE
 )
                             
 
 page_map_region_dep = html.Div([
-    dcc.Graph(id="map_region")
-],
-                                style={
-                                        "border": "0px solid black",
-                                        "padding": "10px 20px",
-                                        "border-radius": "25px",
-                                        "text-align": "left",
-                                        "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-                                        "background": "#ffffff",
-                                        "margin-bottom": "20px"
-                                }
-                        
-                              )
+    html.H1(["Accidentologie en france"], style=fonte),
+                html.Div(className= "float-figainer",children=[
+                    html.Div(id="selection", className="float-child",
+                            children=[
+                                      html.Div(children=["Sélectionnez le niveau géographique :"], style=fonte),
+                                      dcc.Dropdown(id='dropdown_regdep',
+                                                   options=[{'label':"Region","value":'reg'},
+                                                            {'label':"Département","value":'dep'}],
+                                                   value = "reg",
+                                                   style=drop_style,
+                                      ),
+                                      html.Div(children=["Sélectionnez l'indicateur:"], style=fonte),
+                                      dcc.Dropdown(id='dropdown_indic',
+                                                   options=[{'label':"Nombre d'accidents ","value":'qte'},
+                                                            {'label':"Taux pour 1000 habitants","value":'tx'}],
+                                                   value = "qte",
+                                                   style=drop_style,
+                                      ),
+                            ],
+                            style={'width' : '100%'}),
+                    html.Div(className="float-child",
+                             children=[dcc.Graph(id="map_region_dep")],
+                             style={'padding' : '0 0 0 2%'}
+                            )
+                ],style={'display': 'flex', 'flexDirection': 'row'})
+            ],
+            style=fig.DIV_STYLE
+)

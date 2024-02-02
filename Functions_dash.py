@@ -113,7 +113,7 @@ def get_callbacks(app):
         Input('speed-dropdown', 'value'),
     )
     def update_speed_animation(speed_animation):
-        return fig.fig2(speed_animation)
+         return fig.fig2(speed_animation)
         
     
     # ------------ Page 2 Line chart ------------------ 
@@ -121,15 +121,19 @@ def get_callbacks(app):
         Output('graph4', 'figure'),
         [Input('variable-dropdown', 'value'),
          Input('annee-slider','value'),
-         Input('graph6', 'clickData')
+         Input('graph6', 'clickData'),
+         Input('modalite-dropdown', 'value'),
+         Input('graph6', 'figure')
         ]
     )
-    def update_density(selected_var,selected_annee, clickData):
+    def update_density(selected_var,selected_annee, clickData, modalite_dropdown, filter_figure):
         # Filters data if clickData Exists
         if clickData is not None:
-
             filtered_data = fig.data[fig.data['age_group'] == clickData['points'][0]["label"]]
-
+            # Only fiters this if pie chart is cliked
+            if modalite_dropdown != 'all':
+                filtered_data = filtered_data[filtered_data['grav'] == modalite_dropdown]
+            
             return fig.density(selected_var,selected_annee, filtered_data, " " + str(clickData['points'][0]["label"]).lower())# Set title comp to the filtered value
         
         return fig.density(selected_var,selected_annee)
@@ -139,19 +143,24 @@ def get_callbacks(app):
         Output('graph5', 'figure'),
         [Input('variable-dropdown', 'value'),
          Input('annee-slider','value'),
-         Input('graph6', 'clickData')
+         Input('graph6', 'clickData'),
+         Input('modalite-dropdown', 'value')
         ]
     )
-    def update_bar(selected_var,selected_annee, clickData):
+    def update_bar(selected_var,selected_annee, clickData, modalite_dropdown):
         # Filters data if clickData Exists
         if clickData is not None:
-
             filtered_data = fig.data[fig.data['age_group'] == clickData['points'][0]["label"]]
+            # Only fiters this if pie chart is cliked
+            if modalite_dropdown != 'all':
+                filtered_data = filtered_data[filtered_data['grav'] == modalite_dropdown]
 
             return fig.bar(selected_var, selected_annee, filtered_data, str(clickData['points'][0]["label"]).lower())
 
 
         return fig.bar(selected_var, selected_annee)
+
+    # --------- Page 3 pie chart ----------------------
     @callback(
         Output('graph6', 'figure'),
         [Input('modalite-dropdown', 'value'),
@@ -161,8 +170,28 @@ def get_callbacks(app):
     def update_pie(selected_modalite,selected_annee):
         return fig.pie_age_grav(selected_modalite,selected_annee) 
 
+
+    @app.callback(
+        [Output('reset-button', 'disabled'),
+         Output('graph6', 'clickData'),
+         Output('reset-button', 'n_clicks')],
+        [Input('graph6', 'clickData'),
+         Input('reset-button', 'n_clicks')]
+    )
+    def update_button_and_click_data(click_data, n_clicks):
+        # Si le bouton a été cliqué, mettez à jour clickData à None et réinitialise le compteur de clics
+        if n_clicks is not None:
+            new_click_data = None
+            reset_button_clicks = None
+        else:
+            new_click_data = click_data
+            reset_button_clicks = 0
+    
+        # Mettez à jour la propriété 'disabled' du bouton en fonction de la valeur de clickData
+        button_disabled = click_data is None
+        return button_disabled, new_click_data, reset_button_clicks
 # ------------------------------------------------------------------------------------------------------
-# --------------------------------- Callback de la carte -------------------------------------------------
+# --------------------------------- Callback des cartes -------------------------------------------------
 # ------------------------------------------------------------------------------------------------------
 
     @callback(
@@ -177,7 +206,16 @@ def get_callbacks(app):
     )
     def update_map(color, an, mois, jour, catr, cbsm, atm):
         return fig.carte(color, an, mois, jour, catr, cbsm, atm)
-        
+
+    
+    @callback(
+            Output('map_region_dep', 'figure'),
+            [Input('dropdown_regdep', 'value'),
+             Input('dropdown_indic','value')]
+    )
+    def update_map(zoom_update,indic_update):
+        return fig.fig_dep_reg(zoom_update,indic_update)
+
     
 # ------------------------------------------------------------------------------------------------------
 # --------------------------------- Callback ????????? -------------------------------------------------
@@ -265,7 +303,7 @@ def get_callbacks(app):
             return pag.page_map
         
         elif pathname == "/page-2/2":
-            return html.P("No way! This is page 2.2!")
+            return pag.page_map_region_dep
         
         # If the user tries to reach a different page, return a 404 message
         return html.Div(
@@ -276,3 +314,44 @@ def get_callbacks(app):
             ],
             className="p-3 bg-light rounded-3",
         )
+
+
+# ------------------------------------------------------------------------------------------------------
+    # --------------------------------- Callback region, departement selection -----------------------------
+    # ------------------------------------------------------------------------------------------------------
+
+    @app.callback(
+    [Output('zone-selection', 'style'),
+     Output('zone-selection', 'options'),
+     Output('zone-selection', 'placeholder')],
+    [Input('zone-data-filter', 'value')]
+    )
+    def select_geo_zone(value):
+        if value != 'all':
+            all_options = {
+                'all': [],
+                'reg': ['84 Auvergne-Rhône-Alpes',
+                        '32 Hauts-de-France',
+                        '93 Provence-Alpes-Côte d\'Azur',
+                        '75 Nouvelle-Aquitaine',
+                        '24 Centre-Val de Loire',
+                        '27 Bourgogne-Franche-Comté',
+                        '28 Normandie',
+                        '53 Bretagne',
+                        '76 Occitanie',
+                        '52 Pays de la Loire',
+                        '44 Grand Est',
+                        '11 Île-de-France',
+                        '94 Corse'
+                        ],
+                'dep': ['Department 1', 'Department 2', 'Department 3']  # Replace with your department data
+            }
+    
+            if value == "reg":
+                text = "e région"
+            else:
+                text = " département"
+    
+            return {'display': 'block'}, all_options[value], "Sélectionnez un" + text
+    
+        return {'display': 'none'}, [], ""
