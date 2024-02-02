@@ -46,6 +46,7 @@ page_main = html.Div([
                                              for speed in ["normal","x1.5","x2","x4","x8"]
                                         ],
                                         value="normal",
+                                        clearable=False,
                                         style={'width': '40%', "margin-bottom": "10px"}
                                  ),
                                 dbc.Popover(
@@ -58,7 +59,29 @@ page_main = html.Div([
                                 ),
                                 dcc.Graph(id='graph2')
                             ], width=6),
-                        dbc.Col(dcc.Graph(id='graph1',figure=fig.fig1()), width=6),
+                        dbc.Col(
+                            [
+                                 dcc.Dropdown(
+                                        id='niv_geo_dropdown',
+                                        options=[
+                                            {'label': 'National', 'value': 'nat'}, 
+                                            {'label': 'Régional', 'value': 'reg'},
+                                            {'label': 'Départemental', 'value': 'dep'},
+                                        ],
+                                        value='nat',
+                                        clearable=False,
+                                        style={'width': '40%', "margin-bottom": "10px"}
+                                 ),
+                                dbc.Popover(
+                                        [
+                                            dbc.PopoverHeader("Choix de zone géographique"),
+                                            dbc.PopoverBody("Vous pouvez choisir la zone géographique à visualiser parmi nationale, régionale et départementale"),
+                                        ],
+                                        target='niv_geo_dropdown',
+                                        trigger="hover",
+                                ),
+                                dcc.Graph(id='graph1')
+                            ], width=6),
                     ],
                      ),
                 ],
@@ -109,6 +132,7 @@ page_usager = html.Div([
                                                     {"label":"Météo lors de l'accident","value":"atm"},
                                             ],
                                             value="all",
+                                            clearable=False,
                                             style={'width': '50%', "margin-top": "5px"}
                                         ),
                                         #dcc.Dropdown(
@@ -158,6 +182,7 @@ page_usager = html.Div([
                         id='modalite-dropdown',
                         options=[{'label': modalite, 'value': modalite} for modalite in ["all"] + fig.data["grav"].unique().tolist()],
                         value=fig.data['grav'].unique()[2],  
+                        clearable=False,
                         style={'width': '50%','margin-bottom': '10px'}
                     ),
                     dbc.Button("Reset",id="reset-button",color="secondary", disabled=True),

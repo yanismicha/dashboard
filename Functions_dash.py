@@ -109,6 +109,14 @@ def get_callbacks(app):
 # --------------------------------- Callback des graphiques -------------------------------------------------
 # ------------------------------------------------------------------------------------------------------
     @callback(
+        Output('graph1', 'figure'),
+        Input('niv_geo_dropdown', 'value'),
+    )
+    def update_niv_geo(niv_geo_update):
+        return fig.fig1(fig.data,niv_geo_update)
+
+
+    @callback(
         Output('graph2', 'figure'),
         Input('speed-dropdown', 'value'),
     )

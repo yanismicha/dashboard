@@ -353,20 +353,61 @@ nb_hospital = html.Div(style=style_div,
 # ----------------------------------------- Serie temp simple -----------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
-def fig1():
-    # on calcul les occurences des accidents par année
-    accidents_par_annee = data.groupby('an').size().reset_index(name='Nombre_d_accidents')
-    # Créer le lineplot pour la courbe évolutive
-    fig = px.line(accidents_par_annee, x="an", y="Nombre_d_accidents",
+def fig1(data_in,niveau_geo):
+    if niveau_geo== "nat":
+        # on calcul les occurences des accidents par année
+        accidents_par_annee = data_in.groupby('an').size().reset_index(name='Nombre_d_accidents')
+        # Créer le lineplot pour la courbe évolutive
+        fig1 = px.line(accidents_par_annee, x="an", y="Nombre_d_accidents",
+                    markers=True,
+                    custom_data= ['an','Nombre_d_accidents'])
+        # taille de la figure (largeur, hauteur)
+        fig1.update_layout(#width=800, height=500,
+                          yaxis=dict(range=[0,7500]))
+        fig1.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
+                                                "Nombre d'accidents : %{customdata[1]}"
+                                                ]))
+    
+    elif niveau_geo== "reg":
+        accidents_par_annee_region = data_in.groupby(['an', 'region_name']).size().reset_index(name='Nombre_d_accidents')
+        #accidents_par_annee_region = Figure.data_filter(accidents_par_annee_region, 'an', 'Nombre_d_accidents', None, None)
+        # Créer le lineplot pour la courbe évolutive par région
+        fig1 = px.line(accidents_par_annee_region, x="an", y="Nombre_d_accidents",
+                color="region_name",
                 markers=True,
-                custom_data= ['an','Nombre_d_accidents'])
-    # taille de la figure (largeur, hauteur)
-    fig.update_layout(width=800, height=500,yaxis=dict(range=[0,7500]))
+                line_dash="region_name",
+                custom_data=['an', 'region_name', 'Nombre_d_accidents'])
+        # Personnalisation du popup
+        fig1.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
+                                                "Région : %{customdata[1]}",
+                                                "Nombre d'accidents : %{customdata[2]}"
+                                                ]))
+        fig1.update_layout(legend_title_text="Régions")
+
+
+    else:
+        accidents_par_annee_dep = data_in.groupby(['an', 'dep']).size().reset_index(name='Nombre_d_accidents')
+        #accidents_par_annee_dep = Figure.data_filter(accidents_par_annee_dep, 'an', 'Nombre_d_accidents', None,None)
+        # Créer le lineplot pour la courbe évolutive par région
+        fig1 = px.line(accidents_par_annee_dep, x="an", y="Nombre_d_accidents",
+                color="dep",
+                markers=True,
+                line_dash="dep",
+                custom_data=['an', 'dep', 'Nombre_d_accidents'])
+        # Personnalisation du popup
+        fig1.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
+                                                "Département : %{customdata[1]}",
+                                                "Nombre d'accidents : %{customdata[2]}"
+                                                ]))
+        fig1.update_layout(legend_title_text="Départements")
+        
+
     #  ajout titre et axes
-    fig.update_layout(
+    fig1.update_layout(
                     xaxis_title="Année",
-                    yaxis_title="Nombre d'accidents")
-    fig.update_layout(margin = {"r":0,"t":30,"l":0,"b":0},
+                    yaxis_title="Nombre d'accidents",
+    )
+    fig1.update_layout(margin = {"r":0,"t":30,"l":0,"b":0},
                     title={
             'text': "<b>Évolution des accidents cyclistes sur le territoire français</b>",
             'y': 0.98,
@@ -375,14 +416,9 @@ def fig1():
             'yanchor': 'top',
             'font': {'size': 20,'family': 'Arial, sans-serif', 'color': 'black'} 
         })
-
-    # Personnalisation du popup
-    fig.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
-                                                "Nombre d'accidents : %{customdata[1]}"
-                                                ]),selector= 0)
-
+    
     # Afficher le graphique interactif
-    return fig
+    return fig1
 
 
 # --------------------------------------------------------------------------------------------------
@@ -396,7 +432,7 @@ def fig2(speed_animation):
                   markers=True,animation_frame="an"
                  ,custom_data=['an','mois','Nombre_d_accidents'])
     # taille de la figure (largeur, hauteur)
-    fig2.update_layout(width=800, height=500)
+    #fig2.update_layout(width=800, height=500)
     #  ajout titre et axes
     fig2.update_layout(
                       xaxis_title="Mois",
