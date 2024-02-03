@@ -15,7 +15,6 @@ from plotly.subplots import make_subplots
 
 #--------------------stockage des données-----------------------------------------
 data= pd.read_csv("accidents-velos_clean.csv",low_memory=False)
-regions_name= pd.read_csv("departements-region.csv")
 # on recupere les données infos dep et reg
 pop=pd.read_csv("pop_par_dep.csv",sep=";")
 regions_code = pd.read_csv("communes-departement-region.csv")
@@ -24,25 +23,12 @@ geojson_regions_url = 'https://raw.githubusercontent.com/gregoiredavid/france-ge
 geojson_departements_url = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-avec-outre-mer.geojson'
 
 #--------------------------------Transformation de nos datas-----------------------
-data = data.drop(data[data['sexe']=='-1'].index)
-data= pd.merge(data, regions_name[['num_dep','region_name']], left_on='dep', right_on='num_dep',how='right')
 # on ordonne la variable mois pour avoir une année dans l'ordre
 mois_ordre = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 # Conversion de la variable 'mois' en facteur ordonnné
 data['mois'] = pd.Categorical(data['mois'], categories=mois_ordre, ordered=True)
 jour_ordre = ["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"]
 data['jour'] = pd.Categorical(data['jour'], categories=jour_ordre, ordered=True)
-# on regroupe certaines modalités
-data['situ'] = data['situ'].replace(['Non renseigné', 'Aucun','Autres','Sur autre voie spéciale'], 'Autres')
-data['obsm'] = data['obsm'].replace([np.nan,'Aucun','Non renseigné'], 'Non renseigné')
-data['atm'] = data['atm'].replace([np.nan,'Autre'], 'Autre')
-
-# Définissez les intervalles et les labels
-bins = [0, 18, 30, 50, float('inf')]
-# ajout d'une variable age catégorielle
-labels = ['Moins de 18 ans', 'Entre 18 et 30 ans', 'Entre 30 et 50 ans', 'Plus de 50 ans']
-data['age_group'] = pd.cut(data['age'], bins=bins, labels=labels, right=False)
-data.groupby("age_group").size()
 
 # on crée un vecteur avec les années triés dans l'ordre
 mod = data["an"].unique()

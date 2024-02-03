@@ -301,6 +301,7 @@ page_map_region_dep = html.Div([
                                                    options=[{'label':"Region","value":'reg'},
                                                             {'label':"Département","value":'dep'}],
                                                    value = "reg",
+                                                   clearable=False,
                                                    style=drop_style,
                                       ),
                                       html.Div(children=["Sélectionnez l'indicateur:"], style=fonte),
@@ -308,8 +309,24 @@ page_map_region_dep = html.Div([
                                                    options=[{'label':"Nombre d'accidents ","value":'qte'},
                                                             {'label':"Taux pour 1000 habitants","value":'tx'}],
                                                    value = "qte",
+                                                   clearable=False,
                                                    style=drop_style,
                                       ),
+                                     dbc.Popover(
+                                            [
+                                                dbc.PopoverHeader("Choix de l'indicateur"),
+                                                dbc.PopoverBody(
+                                                [
+                                                    html.P([html.Strong("Ici vous pouvez sélectionner l'indicateur qui sera représenté sur la carte:")]),
+                                                    html.P([html.Strong("Nombre d'accidents:"), " représente le nombre d'accidents total par région/département"]),
+                                                    html.P([html.Strong("Taux pour 1000 habitants:"), " représente le nombre d'accidents en proportion de la population de la zone géographique visualisée"]),
+                                                ]
+                                                )
+                                            ],
+                                            target='dropdown_indic',
+                                            trigger="hover",
+                                            placement="top"
+                                     ),
                             ],
                             style={'width' : '100%'}),
                     html.Div(className="float-child",
