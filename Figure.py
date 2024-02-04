@@ -7,6 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from statsmodels.tsa.seasonal import seasonal_decompose
 from plotly.subplots import make_subplots
+from time import sleep
 
 
 # --------------------------------------------------------------------------------------------------
@@ -39,10 +40,12 @@ mod_year = ["all"] + mod.tolist()
 
 #---------------- data accidents par region et departement -------------------#
 
-#on recode proprement les codes dep 
+#on recode proprement les codes dep et reg
 pop['Code Département']=pop['Code Département'].astype(str).str.zfill(2)
+data["reg"]=data["reg"].astype(str).str.zfill(2)
+
 # on récupère le nombre d'accident par dep
-accidents_par_dep = data.groupby(['dep','region_name']).size().reset_index(name = "nombre_accidents")
+accidents_par_dep = data.groupby(['dep','dep_name','region_name','reg']).size().reset_index(name = "nombre_accidents")
 # ajout des derniers départements outre mers
 pop.loc[len(pop)] = ['978','Saint-Martin',72240,"",""]
 pop.loc[len(pop)] = ['987','Polynésie française',306280,"",""]
@@ -50,22 +53,17 @@ pop.loc[len(pop)] = ['988','Nouvelle calédonie',210407,"",""]
 # tri par département
 pop = pop.sort_values('Code Département')
 # fusion des deux datas
-accidents_par_dep=pd.merge(accidents_par_dep, pop[['Code Département','Population','Département']], left_on='dep', right_on='Code Département', how='right')
+accidents_par_dep=pd.merge(accidents_par_dep, pop[['Code Département','Population','Département']], left_on='dep', right_on='Code Département', how='left')
 del accidents_par_dep['Code Département']
 # ajout de la variable ratio: nombre d'accidents pour 1000 habitants
 accidents_par_dep['ratio']=round(accidents_par_dep["nombre_accidents"]/accidents_par_dep["Population"].astype('int64')*1000,2)
 
-accidents_par_reg = accidents_par_dep.groupby('region_name').agg({
+accidents_par_reg = accidents_par_dep.groupby(['region_name','reg']).agg({
     'nombre_accidents': 'sum',
     'Population': 'sum',
     'ratio': 'mean'  
 }).reset_index()
-accidents_par_reg=pd.merge(accidents_par_reg, regions_code[['nom_region','code_region']], left_on='region_name',right_on='nom_region',how='right').drop_duplicates(subset='region_name', keep='first')
-del accidents_par_reg["nom_region"]
-accidents_par_reg.drop(38911,inplace=True)
-accidents_par_reg=accidents_par_reg.reset_index()
-del accidents_par_reg['index']
-colonnes_entiers = ['code_region', 'nombre_accidents', 'Population']
+colonnes_entiers = ['nombre_accidents', 'Population']
 # Conversion des colonnes en entiers
 accidents_par_reg[colonnes_entiers] = accidents_par_reg[colonnes_entiers].astype(int)
 accidents_par_reg['ratio']=np.round(accidents_par_reg['ratio'],2)
@@ -89,7 +87,7 @@ def unlist(input):
     return input
 
 
-def select_data(data: pd.DataFrame, selection: dict):
+def select_data(data: pd.DataFrame, selection: list):
     """
     Filters the given data so as to only keep rows containing the specified modalities
         
@@ -343,13 +341,14 @@ def fig1(data_in,niveau_geo):
     if niveau_geo== "nat":
         # on calcul les occurences des accidents par année
         accidents_par_annee = data_in.groupby('an').size().reset_index(name='Nombre_d_accidents')
+        sleep(0.2) # Used to prevent a rendering bug between the px.line() and the grouby() data
         # Créer le lineplot pour la courbe évolutive
         fig1 = px.line(accidents_par_annee, x="an", y="Nombre_d_accidents",
                     markers=True,
                     custom_data= ['an','Nombre_d_accidents'])
         # taille de la figure (largeur, hauteur)
-        fig1.update_layout(#width=800, height=500,
-                          yaxis=dict(range=[0,7500]))
+        #fig1.update_layout(#width=800, height=500,
+                          #yaxis=dict(range=[0,7500]))
         fig1.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
                                                 "Nombre d'accidents : %{customdata[1]}"
                                                 ]))
@@ -412,8 +411,8 @@ def fig1(data_in,niveau_geo):
 # --------------------------------------------------------------------------------------------------
 
 
-def fig2(speed_animation):
-    accidents_par_annee_mois = data.groupby(['an','mois']).size().reset_index(name = 'Nombre_d_accidents')
+def fig2(speed_animation, data: pd.DataFrame = data):
+    accidents_par_annee_mois = data.groupby(['an','mois'], observed=False).size().reset_index(name = 'Nombre_d_accidents')
     fig2 = px.line(accidents_par_annee_mois, x="mois", y="Nombre_d_accidents", 
                   markers=True,animation_frame="an"
                  ,custom_data=['an','mois','Nombre_d_accidents'])
@@ -437,7 +436,7 @@ def fig2(speed_animation):
         fig2.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 1500
     
     # changer l'echelle des ordonnées
-    fig2.update_yaxes(range=[0, 1100])
+    #fig2.update_yaxes(range=[0, 1100])
     
     # Titre
     fig2.update_layout(margin = {"r":0,"t":30,"l":0,"b":0},
@@ -506,9 +505,9 @@ def fig_seri_reg(data_in, x_select = None, y_select = None):
 # --------------------------------------------------------------------------------------------------
 
 
-def fig3():
+def fig3(data:pd.DataFrame=data):
     # on récupère les accidents par année et par mois
-    accidents_par_annee_mois= data.groupby(['an','mois']).size().reset_index(name='Nombre_d_accidents')
+    accidents_par_annee_mois= data.groupby(['an','mois'], observed=False).size().reset_index(name='Nombre_d_accidents')
     # Création d'une variable date en fusionnant les années et les mois
     accidents_par_annee_mois['date'] = accidents_par_annee_mois['an'].astype(str) + '-' + accidents_par_annee_mois['mois'].astype(str)
     # Décomposition de la série
@@ -569,7 +568,7 @@ def fig3():
 # ----------------------------------------- Pie chart -----------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
-def pie_age_grav(modalite,annee):
+def pie_age_grav(modalite,annee, data: pd.DataFrame = data):
     if annee==2004:# cas du "all"
         age_mort = data[data["grav"]==modalite].groupby(["age_group"]).size().reset_index(name= "nb_accidents")
     else:
@@ -750,7 +749,7 @@ def density(variable, annee, data = data, title_comp=None):
 # --------------------------------------------------------------------------------------------------
 
 
-def bar(var, annee, data = data, title_comp = None):
+def bar(var, annee, data: pd.DataFrame = data, title_comp = None):
     if var =="all":
         if annee == 2004: # equivalent a all pour le slider
             accidents = data.shape[0]
@@ -798,7 +797,7 @@ def carte(color, an, mois, jour, catr, cbsm, atm):
                             mapbox_style="carto-positron", 
                             center={"lat":46.6031, 'lon':1.8883},
                             zoom=4.8,
-                            custom_data=["date","hrmn","trajet", "int", "lum", 'nom_commune'],
+                            custom_data=["date","hrmn","trajet", "int", "lum", 'com_name'],
                             color=unlist(color),
                             #color_discrete_sequence=color_select(unlist(color)),
                             color_discrete_map = {'Blessé léger':'steelblue', 'Blessé hospitalisé':'orange', 'Tué':'red', 'Indemne':'lightgreen'},
@@ -811,7 +810,7 @@ def carte(color, an, mois, jour, catr, cbsm, atm):
                                                 "Type de trajet : %{customdata[2]}", 
                                                 "Intersection: %{customdata[3]}", 
                                                 "Conditions d'éclairage: %{customdata[4]}",
-                                                "Nom commune: %{customdata[5]}"])) # Replace the nan's in data set
+                                                "Nom commune: %{customdata[5]}"]))
         
         map.update_layout(legend_title_text = legend_title_selection[unlist(color)],
                         margin={"r":0,"t":0,"l":0,"b":0}
@@ -829,9 +828,10 @@ def update_hovertemplate(is_region):
                             "Pour 1000 habitants : %{customdata[3]}"])
     else:
         return "<br>".join(["Département : %{customdata[0]}",
-                            "Population : %{customdata[2]}",
-                            "Nombre d'accidents :  %{customdata[1]}",
-                            "Pour 1000 habitants : %{customdata[3]}"])
+                            "Code :  %{customdata[1]}"
+                            "Population : %{customdata[3]}",
+                            "Nombre d'accidents :  %{customdata[2]}",
+                            "Pour 1000 habitants : %{customdata[4]}"])
 
 
 def fig_dep_reg(zoom,indicateur):
@@ -840,7 +840,7 @@ def fig_dep_reg(zoom,indicateur):
             fig = px.choropleth_mapbox(
             data_frame=accidents_par_reg,
             geojson=geojson_regions_url,
-            locations='code_region',
+            locations='reg',
             featureidkey='properties.code',
             color="nombre_accidents",
             color_continuous_scale="thermal",
@@ -848,14 +848,14 @@ def fig_dep_reg(zoom,indicateur):
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
             zoom=4.6,
-            custom_data=["region_name","nombre_accidents","Population","ratio","code_region"],
+            custom_data=["region_name","nombre_accidents","Population","ratio","reg"],
             )
             fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents')
         else:
             fig = px.choropleth_mapbox(
             data_frame=accidents_par_reg,
             geojson=geojson_regions_url,
-            locations='code_region',
+            locations='reg',
             featureidkey='properties.code',
             color="ratio",
             color_continuous_scale="thermal",
@@ -863,7 +863,7 @@ def fig_dep_reg(zoom,indicateur):
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
             zoom=4.6,
-            custom_data=["region_name","nombre_accidents","Population","ratio","code_region"],
+            custom_data=["region_name","nombre_accidents","Population","ratio","reg"],
             )
             fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents pour 1000 habitants')
         fig.update_traces(hovertemplate=update_hovertemplate(True))
@@ -882,7 +882,7 @@ def fig_dep_reg(zoom,indicateur):
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
             zoom=4.6,
-            custom_data=["dep","nombre_accidents","Population","ratio"],
+            custom_data=["dep_name","dep","nombre_accidents","Population","ratio"],
             )
             fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents')
         else:
@@ -898,7 +898,7 @@ def fig_dep_reg(zoom,indicateur):
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
             zoom=4.6,
-            custom_data=["dep","nombre_accidents","Population","ratio"],
+            custom_data=["dep_name","dep","nombre_accidents","Population","ratio"],
             )
             fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents pour 1000 habitants')
         fig.update_traces(hovertemplate=update_hovertemplate(False))

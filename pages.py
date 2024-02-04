@@ -88,7 +88,7 @@ page_main = html.Div([
                 style=fig.DIV_STYLE
             ),
              html.Div(
-                dcc.Graph(id='graph3',figure=fig.fig3()),
+                dcc.Graph(id='graph3'),
                 style=fig.DIV_STYLE,
             ),
             
@@ -186,6 +186,21 @@ page_usager = html.Div([
                         style={'width': '50%','margin-bottom': '10px'}
                     ),
                     dbc.Button("Reset",id="reset-button",color="secondary", disabled=True),
+                    dbc.Popover(
+                            [
+                                dbc.PopoverHeader("Reset Filtre"),
+                                dbc.PopoverBody(
+                                    [
+                                        html.P("Vous pouvez filtrer les données en faisant un double clic sur une zone du diagramme circulaire."),
+                                        html.P("Les données seront filtrés en fonction de la tranche d'âge et de la gravité de la blessure"),
+                                        html.P("Ce boutton vous permet de rénitialiser le filtre. Vous pouvez également appuyer une seule fois sur une zone pour le rénitialiser")
+                                    ]
+                                )
+                            ],
+                            target='reset-button',
+                            trigger="hover",
+                            placement = "bottom"
+                    ),
                     dcc.Graph(id='graph6'),
                  ],
                     style=fig.DIV_STYLE
@@ -325,7 +340,7 @@ page_map_region_dep = html.Div([
                                             ],
                                             target='dropdown_indic',
                                             trigger="hover",
-                                            placement="top"
+                                            placement="right"
                                      ),
                             ],
                             style={'width' : '100%'}),

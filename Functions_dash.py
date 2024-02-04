@@ -1,5 +1,6 @@
 import dash 
-from dash import Dash,dcc,html,callback,Input,Output,State
+from dash import Dash,dcc,html,callback,Input,Output,State, no_update
+from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import pandas as pd 
 import plotly.express as px
@@ -111,17 +112,39 @@ def get_callbacks(app):
     @callback(
         Output('graph1', 'figure'),
         Input('niv_geo_dropdown', 'value'),
+        Input('data-store', 'data')
     )
-    def update_niv_geo(niv_geo_update):
+    def update_niv_geo(niv_geo_update, data):
+        if data != None:
+            return fig.fig1(pd.DataFrame.from_dict(data),niv_geo_update)
+
         return fig.fig1(fig.data,niv_geo_update)
+
+        # ------------ Page 1 Animation chart ------------------ 
 
 
     @callback(
         Output('graph2', 'figure'),
         Input('speed-dropdown', 'value'),
+        Input('data-store', 'data')
     )
-    def update_speed_animation(speed_animation):
+    def update_speed_animation(speed_animation, data):
+         if data != None:
+            return fig.fig2(speed_animation, pd.DataFrame.from_dict(data))
+         
          return fig.fig2(speed_animation)
+
+        # ------------ Page 1 temporal serie ------------------ 
+
+    @callback(
+            Output('graph3','figure'),
+            Input('data-store', 'data')
+    )
+    def update_fig3(data):
+        if data is None:
+            return fig.fig3()
+        
+        return fig.fig3(pd.DataFrame.from_dict(data))
         
     
     # ------------ Page 2 Line chart ------------------ 
@@ -131,13 +154,18 @@ def get_callbacks(app):
          Input('annee-slider','value'),
          Input('graph6', 'clickData'),
          Input('modalite-dropdown', 'value'),
-         Input('graph6', 'figure')
+         Input('data-store', 'data')
         ]
     )
-    def update_density(selected_var,selected_annee, clickData, modalite_dropdown, filter_figure):
+    def update_density(selected_var,selected_annee, clickData, modalite_dropdown, data):
+        if data is None:
+            data_out = fig.data
+        else:
+            data_out = data
+
         # Filters data if clickData Exists
         if clickData is not None:
-            filtered_data = fig.data[fig.data['age_group'] == clickData['points'][0]["label"]]
+            filtered_data = data_out[data_out['age_group'] == clickData['points'][0]["label"]]
             # Only fiters this if pie chart is cliked
             if modalite_dropdown != 'all':
                 filtered_data = filtered_data[filtered_data['grav'] == modalite_dropdown]
@@ -152,13 +180,20 @@ def get_callbacks(app):
         [Input('variable-dropdown', 'value'),
          Input('annee-slider','value'),
          Input('graph6', 'clickData'),
-         Input('modalite-dropdown', 'value')
+         Input('modalite-dropdown', 'value'),
+         Input('data-store', 'data')
         ]
     )
-    def update_bar(selected_var,selected_annee, clickData, modalite_dropdown):
+    def update_bar(selected_var,selected_annee, clickData, modalite_dropdown, data):
+        # Filter data based on global options
+        if data is None:
+            data_out = fig.data
+        else:
+            data_out = data
+
         # Filters data if clickData Exists
         if clickData is not None:
-            filtered_data = fig.data[fig.data['age_group'] == clickData['points'][0]["label"]]
+            filtered_data = data_out[data_out['age_group'] == clickData['points'][0]["label"]]
             # Only fiters this if pie chart is cliked
             if modalite_dropdown != 'all':
                 filtered_data = filtered_data[filtered_data['grav'] == modalite_dropdown]
@@ -166,16 +201,21 @@ def get_callbacks(app):
             return fig.bar(selected_var, selected_annee, filtered_data, str(clickData['points'][0]["label"]).lower())
 
 
-        return fig.bar(selected_var, selected_annee)
+        return fig.bar(selected_var, selected_annee, data_out)
+
 
     # --------- Page 3 pie chart ----------------------
     @callback(
         Output('graph6', 'figure'),
         [Input('modalite-dropdown', 'value'),
          Input('annee-slider','value'),
+         Input('data-store', 'data')
         ]
     )
-    def update_pie(selected_modalite,selected_annee):
+    def update_pie(selected_modalite,selected_annee, data):
+        if data != None:
+            return fig.pie_age_grav(selected_modalite,selected_annee, pd.DataFrame.from_dict(data)) 
+
         return fig.pie_age_grav(selected_modalite,selected_annee) 
 
 
@@ -338,21 +378,8 @@ def get_callbacks(app):
         if value != 'all':
             all_options = {
                 'all': [],
-                'reg': ['84 Auvergne-Rhône-Alpes',
-                        '32 Hauts-de-France',
-                        '93 Provence-Alpes-Côte d\'Azur',
-                        '75 Nouvelle-Aquitaine',
-                        '24 Centre-Val de Loire',
-                        '27 Bourgogne-Franche-Comté',
-                        '28 Normandie',
-                        '53 Bretagne',
-                        '76 Occitanie',
-                        '52 Pays de la Loire',
-                        '44 Grand Est',
-                        '11 Île-de-France',
-                        '94 Corse'
-                        ],
-                'dep': ['Department 1', 'Department 2', 'Department 3']  # Replace with your department data
+                'reg': dict((nb, f"{nb} {nom}") for nom, nb in zip(fig.data['region_name'].unique(), fig.data['reg'].unique())),
+                'dep': dict((nb, f"{nb} {nom}") for nom, nb in zip(fig.data['dep_name'].unique(), fig.data['dep'].unique()))
             }
     
             if value == "reg":
@@ -360,6 +387,31 @@ def get_callbacks(app):
             else:
                 text = " département"
     
-            return {'display': 'block'}, all_options[value], "Sélectionnez un" + text
+            return {'visibility': 'visible'}, all_options[value], "Sélectionnez un" + text
     
-        return {'display': 'none'}, [], ""
+        return {'visibility': 'hidden'}, [], ""
+
+
+ # --------------------------------------------- Dropdown 2 -----------------------------------------------
+
+    @callback(Output('data-store', 'data'),
+              Output('data-store','clear_data'),
+              Input('zone-data-filter', 'value'),
+              Input('zone-selection', 'value')
+              )
+    def set_zone_geo(zone, code):
+        if zone == 'all' or code is None:
+            return no_update, True
+            #raise PreventUpdate
+        if len(code) == 1:
+            code = '0' + code
+        else:
+            return fig.select_data(fig.data, {zone : [code]}).to_dict('records'), False
+        #else:
+         #   return 
+            
+            
+
+        
+
+        
