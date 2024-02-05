@@ -18,7 +18,9 @@ from time import sleep
 data= pd.read_csv("accidents-velos_clean.csv",low_memory=False)
 # on recupere les données infos dep et reg
 pop=pd.read_csv("pop_par_dep.csv",sep=";")
-regions_code = pd.read_csv("communes-departement-region.csv")
+pistes_par_com=pd.read_csv("pistes_com.csv")
+pistes_par_dep=pd.read_csv("pistes_dep.csv")
+pistes_par_reg=pd.read_csv("pistes_reg.csv")
 # geojson pour maps
 geojson_regions_url = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson'
 geojson_departements_url = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-avec-outre-mer.geojson'
@@ -565,6 +567,45 @@ def fig3(data:pd.DataFrame=data):
 
 
 # --------------------------------------------------------------------------------------------------
+# ----------------------------------------- barplot in popup -----------------------------------------------
+# --------------------------------------------------------------------------------------------------
+
+def bar_popup(zone_geo,indicateur):
+    if indicateur == "qte":
+        if zone_geo == "reg":
+            fig = px.bar(pistes_par_reg, y="region_name", x="nombre_pistes_cyclables", color="region_name")
+            fig.update_layout(yaxis_title="Regions",legend_title_text="Regions")
+        elif zone_geo == "dep":
+            top_20_dep = pistes_par_dep.head(20)
+            fig = px.bar(top_20_dep, y="dep_name", x="nombre_pistes_cyclables", color="dep_name")
+            fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Départements",legend_title_text="Départements")
+        else:
+            top_20_com = pistes_par_com.head(20)
+            fig = px.bar(top_20_com, y="com_name", x="nombre_pistes_cyclables", color="com_name")
+            fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Communes",legend_title_text="Communes")
+
+    else:
+        if zone_geo == "reg":
+            fig = px.bar(pistes_par_reg, y="region_name", x="ratio", color="region_name")
+            fig.update_layout(yaxis_title="Regions",legend_title_text="Regions")
+        elif zone_geo == "dep":
+            top_20_dep = pistes_par_dep.sort_values(by="ratio", ascending=False).head(20)
+            fig = px.bar(top_20_dep, y="dep_name", x="ratio", color="dep_name")
+            fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Départements",legend_title_text="Départements")
+        else:
+            top_20_com = pistes_par_com.sort_values(by="ratio", ascending=False).head(20)
+            fig = px.bar(top_20_com, y="com_name", x="nombre_pistes_cyclables", color="com_name")
+            fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Communes",legend_title_text="Communes")
+        fig.update_layout(xaxis_title=" Nombre de pistes cyclables pour 1000 habitants")
+
+
+    return fig
+
+
+
+
+
+# --------------------------------------------------------------------------------------------------
 # ----------------------------------------- Pie chart -----------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
@@ -905,4 +946,7 @@ def fig_dep_reg(zoom,indicateur):
     fig.update_layout(height=700,width=1000)
 
     return fig
+
+
+
     

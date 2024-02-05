@@ -80,6 +80,33 @@ page_main = html.Div([
                                         target='niv_geo_dropdown',
                                         trigger="hover",
                                 ),
+                                dbc.Button(
+                                    "Pistes cyclables",
+                                    id="pistes_button",
+                                    color="secondary",
+                                    className="me-4",
+                                    n_clicks=0,
+                                ),
+                                dbc.Popover(
+                                    [
+                                        dbc.PopoverHeader("Popover header"),
+                                        dbc.PopoverBody(
+                                            [
+                                                dbc.Switch(
+                                                        id="indic_switch",
+                                                        label="Ratio",
+                                                        value=False,
+                                                ),
+                                                dcc.Graph(id = "graph_popup"),
+                                            ]
+                                        ),
+                                    ],
+                                    id="pistes_popover",
+                                    is_open=False,
+                                    target="graph1",
+                                    style={'maxWidth': '80%', 'width': '800px', 'maxHeight': '80%', 'height': '600px', 'overflowY': 'scroll'},
+
+                                ),
                                 dcc.Graph(id='graph1')
                             ], width=6),
                     ],

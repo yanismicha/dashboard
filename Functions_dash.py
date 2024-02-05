@@ -120,8 +120,29 @@ def get_callbacks(app):
 
         return fig.fig1(fig.data,niv_geo_update)
 
-        # ------------ Page 1 Animation chart ------------------ 
+        # ------------ Page 1 popup bar ------------------ 
 
+    @app.callback(
+        Output("pistes_popover", "is_open"),
+        [Input("pistes_button", "n_clicks")],
+        [State("pistes_popover", "is_open")],
+    )
+    def toggle_popover(n, is_open):
+        if n:
+            return not is_open
+        return is_open
+    
+    @app.callback(
+         Output('graph_popup', 'figure'),
+         Input('niv_geo_dropdown', 'value'),
+         Input('indic_switch', 'value')
+     )
+    def update_bar_popup(zone_geo, switch_value):
+        indicateur = "qte" if not switch_value else "ratio"
+        return fig.bar_popup(zone_geo, indicateur)
+
+
+        # ------------ Page 1 Animation chart ------------------ 
 
     @callback(
         Output('graph2', 'figure'),
