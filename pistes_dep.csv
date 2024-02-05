@@ -1,0 +1,97 @@
+dep,dep_name,reg,region_name,nombre_pistes_cyclables,Population,ratio
+59,Nord,32.0,Hauts-de-France,15730,2613874,6.02
+44,Loire-Atlantique,52.0,Pays de la Loire,10900,1413341,7.71
+75,Paris,11.0,Île-de-France,10482,2168462,4.83
+69,Rhône,84.0,Auvergne-Rhône-Alpes,10248,1878095,5.46
+33,Gironde,75.0,Nouvelle-Aquitaine,9738,1610829,6.05
+31,Haute-Garonne,76.0,Occitanie,9501,1388393,6.84
+67,Bas-Rhin,44.0,Grand Est,8609,1125279,7.65
+92,Hauts-de-Seine,11.0,Île-de-France,8175,1612788,5.07
+35,Ille-et-Vilaine,53.0,Bretagne,7484,1073883,6.97
+38,Isère,84.0,Auvergne-Rhône-Alpes,6797,1272816,5.34
+78,Yvelines,11.0,Île-de-France,6190,1438440,4.3
+91,Essonne,11.0,Île-de-France,5474,1313729,4.17
+13,Bouches-du-Rhône,93.0,Provence-Alpes-Côte d'Azur,5270,2043941,2.58
+85,Vendée,52.0,Pays de la Loire,5183,680191,7.62
+62,Pas-de-Calais,32.0,Hauts-de-France,4935,1475142,3.35
+49,Maine-et-Loire,52.0,Pays de la Loire,4895,820655,5.96
+29,Finistère,53.0,Bretagne,4763,910502,5.23
+45,Loiret,24.0,Centre-Val de Loire,4670,681497,6.85
+68,Haut-Rhin,44.0,Grand Est,4648,767606,6.06
+94,Val-de-Marne,11.0,Île-de-France,4631,1401228,3.3
+56,Morbihan,53.0,Bretagne,4612,753543,6.12
+76,Seine-Maritime,28.0,Normandie,4530,1257009,3.6
+17,Charente-Maritime,75.0,Nouvelle-Aquitaine,4416,648183,6.81
+74,Haute-Savoie,84.0,Auvergne-Rhône-Alpes,4248,829668,5.12
+14,Calvados,28.0,Normandie,4233,695818,6.08
+34,Hérault,76.0,Occitanie,4212,1160043,3.63
+93,Seine-Saint-Denis,11.0,Île-de-France,3976,1646105,2.42
+77,Seine-et-Marne,11.0,Île-de-France,3948,1422736,2.77
+84,Vaucluse,93.0,Provence-Alpes-Côte d'Azur,3888,566096,6.87
+37,Indre-et-Loire,24.0,Centre-Val de Loire,3815,611139,6.24
+95,Val-d'Oise,11.0,Île-de-France,3662,1242746,2.95
+26,Drôme,84.0,Auvergne-Rhône-Alpes,3555,516172,6.89
+54,Meurthe-et-Moselle,44.0,Grand Est,3511,733085,4.79
+64,Pyrénées-Atlantiques,75.0,Nouvelle-Aquitaine,3489,677189,5.15
+57,Moselle,44.0,Grand Est,3270,1038558,3.15
+22,Côtes-d'Armor,53.0,Bretagne,2972,598715,4.96
+72,Sarthe,52.0,Pays de la Loire,2882,566901,5.08
+25,Doubs,27.0,Bourgogne-Franche-Comté,2681,540890,4.96
+73,Savoie,84.0,Auvergne-Rhône-Alpes,2627,433755,6.06
+40,Landes,75.0,Nouvelle-Aquitaine,2327,411757,5.65
+51,Marne,44.0,Grand Est,2296,573253,4.01
+63,Puy-de-Dôme,84.0,Auvergne-Rhône-Alpes,2153,655185,3.29
+83,Var,93.0,Provence-Alpes-Côte d'Azur,2102,1071832,1.96
+06,Alpes-Maritimes,93.0,Provence-Alpes-Côte d'Azur,2100,1080614,1.94
+01,Ain,84.0,Auvergne-Rhône-Alpes,1967,649654,3.03
+66,Pyrénées-Orientales,76.0,Occitanie,1946,482131,4.04
+21,Côte-d'Or,27.0,Bourgogne-Franche-Comté,1878,536837,3.5
+30,Gard,76.0,Occitanie,1877,748236,2.51
+86,Vienne,75.0,Nouvelle-Aquitaine,1821,438136,4.16
+71,Saône-et-Loire,27.0,Bourgogne-Franche-Comté,1808,553129,3.27
+42,Loire,84.0,Auvergne-Rhône-Alpes,1792,762495,2.35
+60,Oise,32.0,Hauts-de-France,1770,829839,2.13
+80,Somme,32.0,Hauts-de-France,1716,570195,3.01
+41,Loir-et-Cher,24.0,Centre-Val de Loire,1523,332601,4.58
+50,Manche,28.0,Normandie,1452,496972,2.92
+53,Mayenne,52.0,Pays de la Loire,1214,306323,3.96
+07,Ardèche,84.0,Auvergne-Rhône-Alpes,1196,328557,3.64
+79,Deux-Sèvres,75.0,Nouvelle-Aquitaine,1136,375652,3.02
+27,Eure,28.0,Normandie,1085,610152,1.78
+88,Vosges,44.0,Grand Est,1045,364873,2.86
+03,Allier,84.0,Auvergne-Rhône-Alpes,1030,338978,3.04
+10,Aube,44.0,Grand Est,1025,311623,3.29
+28,Eure-et-Loir,24.0,Centre-Val de Loire,1005,433983,2.32
+81,Tarn,76.0,Occitanie,991,392407,2.53
+47,Lot-et-Garonne,75.0,Nouvelle-Aquitaine,979,333230,2.94
+39,Jura,27.0,Bourgogne-Franche-Comté,950,259393,3.66
+18,Cher,24.0,Centre-Val de Loire,919,304794,3.02
+87,Haute-Vienne,75.0,Nouvelle-Aquitaine,914,374158,2.44
+11,Aude,76.0,Occitanie,858,370245,2.32
+89,Yonne,27.0,Bourgogne-Franche-Comté,809,338303,2.39
+16,Charente,75.0,Nouvelle-Aquitaine,720,351971,2.05
+08,Ardennes,44.0,Grand Est,700,271339,2.58
+05,Hautes-Alpes,93.0,Provence-Alpes-Côte d'Azur,675,141576,4.77
+24,Dordogne,75.0,Nouvelle-Aquitaine,663,412629,1.61
+90,Territoire de Belfort,27.0,Bourgogne-Franche-Comté,640,144479,4.43
+61,Orne,28.0,Normandie,602,282516,2.13
+02,Aisne,32.0,Hauts-de-France,592,534286,1.11
+04,Alpes-de-Haute-Provence,93.0,Provence-Alpes-Côte d'Azur,590,161664,3.65
+82,Tarn-et-Garonne,76.0,Occitanie,533,262582,2.03
+36,Indre,24.0,Centre-Val de Loire,526,218508,2.41
+52,Haute-Marne,44.0,Grand Est,504,175102,2.88
+65,Hautes-Pyrénées,76.0,Occitanie,485,227492,2.13
+58,Nièvre,27.0,Bourgogne-Franche-Comté,442,205942,2.15
+12,Aveyron,76.0,Occitanie,414,281082,1.47
+70,Haute-Saône,27.0,Bourgogne-Franche-Comté,400,234316,1.71
+43,Haute-Loire,84.0,Auvergne-Rhône-Alpes,330,227444,1.45
+55,Meuse,44.0,Grand Est,327,187372,1.75
+19,Corrèze,75.0,Nouvelle-Aquitaine,320,241891,1.32
+46,Lot,76.0,Occitanie,300,171463,1.75
+09,Ariège,76.0,Occitanie,285,152321,1.87
+15,Cantal,84.0,Auvergne-Rhône-Alpes,187,144240,1.3
+32,Gers,76.0,Occitanie,176,191332,0.92
+48,Lozère,76.0,Occitanie,171,75463,2.27
+2A,Corse-du-Sud,94.0,Corse,73,159894,0.46
+2B,Haute-Corse,94.0,Corse,63,177902,0.35
+23,Creuse,75.0,Nouvelle-Aquitaine,17,118711,0.14
