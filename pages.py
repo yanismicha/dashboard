@@ -89,7 +89,7 @@ page_main = html.Div([
                                 ),
                                 dbc.Popover(
                                     [
-                                        dbc.PopoverHeader("Popover header"),
+                                        dbc.PopoverHeader("Pistes cyclables"),
                                         dbc.PopoverBody(
                                             [
                                                 dbc.Switch(

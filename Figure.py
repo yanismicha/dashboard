@@ -356,35 +356,37 @@ def fig1(data_in,niveau_geo):
                                                 ]))
     
     elif niveau_geo== "reg":
-        accidents_par_annee_region = data_in.groupby(['an', 'region_name']).size().reset_index(name='Nombre_d_accidents')
+        accidents_par_annee_region = data_in.groupby(['an', 'region_name','reg']).size().reset_index(name='Nombre_d_accidents')
         #accidents_par_annee_region = Figure.data_filter(accidents_par_annee_region, 'an', 'Nombre_d_accidents', None, None)
         # Créer le lineplot pour la courbe évolutive par région
         fig1 = px.line(accidents_par_annee_region, x="an", y="Nombre_d_accidents",
                 color="region_name",
                 markers=True,
                 line_dash="region_name",
-                custom_data=['an', 'region_name', 'Nombre_d_accidents'])
+                custom_data=['an', 'region_name','reg','Nombre_d_accidents'])
         # Personnalisation du popup
         fig1.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
                                                 "Région : %{customdata[1]}",
-                                                "Nombre d'accidents : %{customdata[2]}"
+                                                "Code : %{customdata[2]}",
+                                                "Nombre d'accidents : %{customdata[3]}"
                                                 ]))
         fig1.update_layout(legend_title_text="Régions")
 
 
     else:
-        accidents_par_annee_dep = data_in.groupby(['an', 'dep']).size().reset_index(name='Nombre_d_accidents')
+        accidents_par_annee_dep = data_in.groupby(['an','dep_name','dep']).size().reset_index(name='Nombre_d_accidents')
         #accidents_par_annee_dep = Figure.data_filter(accidents_par_annee_dep, 'an', 'Nombre_d_accidents', None,None)
         # Créer le lineplot pour la courbe évolutive par région
         fig1 = px.line(accidents_par_annee_dep, x="an", y="Nombre_d_accidents",
-                color="dep",
+                color="dep_name",
                 markers=True,
                 line_dash="dep",
-                custom_data=['an', 'dep', 'Nombre_d_accidents'])
+                custom_data=['an','dep_name','dep', 'Nombre_d_accidents'])
         # Personnalisation du popup
         fig1.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
                                                 "Département : %{customdata[1]}",
-                                                "Nombre d'accidents : %{customdata[2]}"
+                                                "Code : %{customdata[2]}",
+                                                "Nombre d'accidents : %{customdata[3]}"
                                                 ]))
         fig1.update_layout(legend_title_text="Départements")
         
@@ -570,35 +572,111 @@ def fig3(data:pd.DataFrame=data):
 # ----------------------------------------- barplot in popup -----------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
+custom_purple_palette = [
+    '#180a24',
+    '#1f0d2e',
+    '#260f39',
+    '#2d1243',
+    '#34154e',
+    '#3b1758',
+    '#421a63',
+    '#491d6d',
+    '#501f77',
+    '#572282',
+    '#5e258c',
+    '#642797',
+    '#6b2aa1',
+    '#722dac',
+    '#792fb6',
+    '#8032c0',
+    '#8735cb',
+    '#8e37d5',
+    '#953ae0',
+    '#9c3dea',
+    '#a33ff5',
+    '#aa42ff'
+]
+
+custom_green_palette = [
+    '#054828',
+    '#05512d',
+    '#065932',
+    '#066237',
+    '#076b3c',
+    '#077441',
+    '#087c45',
+    '#08854a',
+    '#098e4f',
+    '#099654',
+    '#0a9f59',
+    '#0aa85e',
+    '#0bb163',
+    '#0bb968',
+    '#0cc26d',
+    '#0ccb72',
+    '#0dd376',
+    '#0ddc7b',
+    '#0ee580',
+    '#0eee85',
+    '#0ff68a',
+    '#0fff8f'
+]
+# fonction de maj pour les popups
+def update_popup(zone):
+    if zone == "reg":
+        return "<br>".join(["Région : %{customdata[0]}",
+                            "Code :  %{customdata[1]}",
+                            "Population : %{customdata[3]}",
+                            "Nombre de pistes cylables :  %{customdata[2]}",
+                            "Pour 1000 habitants : %{customdata[4]}"])
+    elif zone == "dep":
+        return "<br>".join(["Département : %{customdata[0]}",
+                            "Code :  %{customdata[1]}"
+                            "Population : %{customdata[3]}",
+                            "Nombre de pistes cylables :  %{customdata[2]}",
+                            "Pour 1000 habitants : %{customdata[4]}"])
+    else:
+        return "<br>".join(["Commune : %{customdata[0]}",
+                            "Code :  %{customdata[1]}",
+                            "Nombre de pistes cylables :  %{customdata[2]}"])
+
+
+
 def bar_popup(zone_geo,indicateur):
     if indicateur == "qte":
         if zone_geo == "reg":
-            fig = px.bar(pistes_par_reg, y="region_name", x="nombre_pistes_cyclables", color="region_name")
+            fig = px.bar(pistes_par_reg, y="region_name", x="nombre_pistes_cyclables", color="region_name",
+                         color_discrete_sequence=custom_green_palette,custom_data=['region_name','reg','nombre_pistes_cyclables','Population','ratio'])
             fig.update_layout(yaxis_title="Regions",legend_title_text="Regions")
         elif zone_geo == "dep":
             top_20_dep = pistes_par_dep.head(20)
-            fig = px.bar(top_20_dep, y="dep_name", x="nombre_pistes_cyclables", color="dep_name")
+            fig = px.bar(top_20_dep, y="dep_name", x="nombre_pistes_cyclables",color="dep_name",
+                         color_discrete_sequence=custom_green_palette,custom_data=['dep_name','dep','nombre_pistes_cyclables','Population','ratio'])
             fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Départements",legend_title_text="Départements")
         else:
             top_20_com = pistes_par_com.head(20)
-            fig = px.bar(top_20_com, y="com_name", x="nombre_pistes_cyclables", color="com_name")
+            fig = px.bar(top_20_com, y="com_name", x="nombre_pistes_cyclables", color="com_name",
+                         color_discrete_sequence=custom_green_palette,custom_data=['com_name','com','nombre_pistes_cyclables'])
             fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Communes",legend_title_text="Communes")
 
     else:
         if zone_geo == "reg":
-            fig = px.bar(pistes_par_reg, y="region_name", x="ratio", color="region_name")
+            fig = px.bar(pistes_par_reg.sort_values(by="ratio",ascending=False), y="region_name", x="ratio", color="region_name",
+                         color_discrete_sequence=custom_purple_palette,custom_data=['region_name','reg','nombre_pistes_cyclables','Population','ratio'])
             fig.update_layout(yaxis_title="Regions",legend_title_text="Regions")
         elif zone_geo == "dep":
             top_20_dep = pistes_par_dep.sort_values(by="ratio", ascending=False).head(20)
-            fig = px.bar(top_20_dep, y="dep_name", x="ratio", color="dep_name")
+            fig = px.bar(top_20_dep, y="dep_name", x="ratio", color="dep_name",
+                         color_discrete_sequence=custom_purple_palette,custom_data=['dep_name','dep','nombre_pistes_cyclables','Population','ratio'])
             fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Départements",legend_title_text="Départements")
         else:
-            top_20_com = pistes_par_com.sort_values(by="ratio", ascending=False).head(20)
-            fig = px.bar(top_20_com, y="com_name", x="nombre_pistes_cyclables", color="com_name")
+            top_20_com = pistes_par_com.sort_values(by="nombre_pistes_cyclables", ascending=False).head(20)
+            fig = px.bar(top_20_com, y="com_name", x="nombre_pistes_cyclables", color="com_name",
+                         color_discrete_sequence=custom_purple_palette,custom_data=['com_name','com','nombre_pistes_cyclables'])
             fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Communes",legend_title_text="Communes")
         fig.update_layout(xaxis_title=" Nombre de pistes cyclables pour 1000 habitants")
 
-
+    fig.update_traces(hovertemplate=update_popup(zone_geo))
     return fig
 
 
@@ -841,7 +919,7 @@ def carte(color, an, mois, jour, catr, cbsm, atm):
                             custom_data=["date","hrmn","trajet", "int", "lum", 'com_name'],
                             color=unlist(color),
                             #color_discrete_sequence=color_select(unlist(color)),
-                            color_discrete_map = {'Blessé léger':'steelblue', 'Blessé hospitalisé':'orange', 'Tué':'red', 'Indemne':'lightgreen'},
+                            color_discrete_map = {'Blessé léger':'#6495ed', 'Blessé hospitalisé':'#ffa54f', 'Tué':'#ff6666', 'Indemne':'#4cae4c'},
                             height=700,
                             width=1000
                             )
@@ -884,7 +962,7 @@ def fig_dep_reg(zoom,indicateur):
             locations='reg',
             featureidkey='properties.code',
             color="nombre_accidents",
-            color_continuous_scale="thermal",
+            color_continuous_scale="Reds",
             mapbox_style="carto-positron",
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
@@ -899,7 +977,7 @@ def fig_dep_reg(zoom,indicateur):
             locations='reg',
             featureidkey='properties.code',
             color="ratio",
-            color_continuous_scale="thermal",
+            color_continuous_scale="Reds",
             mapbox_style="carto-positron",
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
@@ -917,7 +995,7 @@ def fig_dep_reg(zoom,indicateur):
             locations='dep',
             featureidkey='properties.code',
             color="nombre_accidents",
-            color_continuous_scale="thermal",
+            color_continuous_scale="Reds",
             mapbox_style="carto-positron",
             # on centre sur la france
             center={"lat": 46.7111, "lon": 1.7191},
@@ -933,7 +1011,7 @@ def fig_dep_reg(zoom,indicateur):
             locations='dep',
             featureidkey='properties.code',
             color="ratio",
-            color_continuous_scale="thermal",
+            color_continuous_scale="Reds",
             mapbox_style="carto-positron",
             # on centre sur la france
             center={"lat": 46.7111, "lon": 1.7191},
