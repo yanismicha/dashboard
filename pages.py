@@ -15,9 +15,9 @@ import Figure as fig
 page_main = html.Div([
                 html.Div(id = "div-summary",
                     children=[
-                            fig.nb_total,
-                            fig.nb_mort,
-                            fig.nb_hospital,
+                            fig.chiffres(fig.data,"nb_total"),
+                            fig.chiffres(fig.data,"nb_mort"),
+                            fig.chiffres(fig.data,"nb_hospital"),
                     ],
                     style=fig.NUMBER_DIV_STYLE,
                 ),

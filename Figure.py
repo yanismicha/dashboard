@@ -291,43 +291,47 @@ NUMBER_DIV_STYLE={
 # --------------------------------------- Les chiffres ---------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
-style_div = {'width': '30%', 'display': 'inline-block'}
-style_nb_text1 = {'font-size': '100%', 'bottom' : '0%'}#{"margin": "0% 10% 0%"}#{'color' : 'white'}
-style_nb = {'font-size': '200%', 'margin' : '0%'}#{"text-align": "center", "margin" : "20px"}#{"display": "flex","justify-content": "center","align-items": "center"}
-style_nb_text2 = {'font-size': '100%'}
 
+def chiffres(data:pd.DataFrame=data,retour="nb_mort"):
+    style_div = {'width': '30%', 'display': 'inline-block'}
+    style_nb_text1 = {'font-size': '100%', 'bottom' : '0%'}#{"margin": "0% 10% 0%"}#{'color' : 'white'}
+    style_nb = {'font-size': '200%', 'margin' : '0%'}#{"text-align": "center", "margin" : "20px"}#{"display": "flex","justify-content": "center","align-items": "center"}
+    style_nb_text2 = {'font-size': '100%'}
 # Calcule
-mort_per = round(data[(data['an'] == data['an'].max()) & (data['grav'] == 'Tué')].count().iloc[0] / data[(data['an'] == data['an'].max()) & (data['grav'] != 'Tué')].count().iloc[0] * 100,
-                 0)
+    mort_per = round(data[(data['an'] == data['an'].max()) & (data['grav'] == 'Tué')].count().iloc[0] / data[(data['an'] == data['an'].max()) & (data['grav'] != 'Tué')].count().iloc[0] * 100,0)
+    
+    hosp_per = round(data[(data['an'] == 2021) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0]/ data[(data['an'] == data['an'].max())].count().iloc[0] * 100,0)
 
-hosp_per = round(data[(data['an'] == data['an'].max()) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0] / data[(data['an'] == data['an'].max()) & (data['grav'] != 'Blessé hospitalisé')].count().iloc[0] * 100,
-                 0)
-
-nb_total = html.Div(style=style_div,
-                  children=[html.P(style=style_nb_text1,
-                                   children=[f"Nombre d'accidents recensés en {data['an'].max()}:"]), 
-                            html.B(style=style_nb,
-                                   children=[f"{data[(data['an'] == data['an'].max())].count().iloc[0]}"])
-                                   ])
-
-
-nb_mort = html.Div(style=style_div,
-                  children=[html.P(style=style_nb_text1,
-                                   children=[f"Nombre de morts en {data['an'].max()}:"]), 
-                            html.B(style=style_nb,
-                                   children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Tué')].count().iloc[0]}"]),
-                            html.P(style=style_nb_text2,
-                                   children=[f"Représente {mort_per}% des accidents totaux."])
-                                   ])
-
-nb_hospital = html.Div(style=style_div,
-                  children=[html.P(style=style_nb_text1,
-                                   children=[f"Nombre d'hospitalisations en {data['an'].max()}:"]), 
-                            html.B(style=style_nb,
-                                   children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0]}"]),
-                                   html.P(style=style_nb_text2,
-                                   children=[f"Représente {hosp_per}% des accidents totaux."])
-                                   ])
+    #round(data[(data['an'] == data['an'].max()) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0] / data[(data['an'] == data['an'].max()) & (data['grav'] != 'Blessé hospitalisé')].count().iloc[0] * 100,0)  ce n'est pas le total!!
+    
+    if retour == 'nb_total':
+        return html.Div(style=style_div,
+                      children=[html.P(style=style_nb_text1,
+                                       children=[f"Nombre d'accidents recensés en {data['an'].max()}:"]), 
+                                html.B(style=style_nb,
+                                       children=[f"{data[(data['an'] == data['an'].max())].count().iloc[0]}"])
+                                       ])
+    
+    
+    elif retour == 'nb_mort':
+        return html.Div(style=style_div,
+                      children=[html.P(style=style_nb_text1,
+                                       children=[f"Nombre de morts en {data['an'].max()}:"]), 
+                                html.B(style=style_nb,
+                                       children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Tué')].count().iloc[0]}"]),
+                                html.P(style=style_nb_text2,
+                                       children=[f"Représente {mort_per}% des accidents totaux."])
+                                       ])
+    
+    else:
+        return html.Div(style=style_div,
+                      children=[html.P(style=style_nb_text1,
+                                       children=[f"Nombre d'hospitalisations en {data['an'].max()}:"]), 
+                                html.B(style=style_nb,
+                                       children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0]}"]),
+                                       html.P(style=style_nb_text2,
+                                       children=[f"Représente {hosp_per}% des accidents totaux."])
+                                       ])
 
 
 # --------------------------------------------------------------------------------------------------

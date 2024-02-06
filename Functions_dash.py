@@ -107,6 +107,28 @@ def unpack_mods(data_obj: tuple):
 def get_callbacks(app):
 
 # ------------------------------------------------------------------------------------------------------
+# --------------------------------- Callback des chiffres -------------------------------------------------
+# ------------------------------------------------------------------------------------------------------
+
+
+    @app.callback(
+    Output('div-summary', 'children'),
+    Input('data-store', 'data')
+    )
+    def update_summary_numbers(data):
+        if data != None:
+            return [
+                fig.chiffres(pd.DataFrame.from_dict(data), "nb_total"),
+                fig.chiffres(pd.DataFrame.from_dict(data), "nb_mort"),
+                fig.chiffres(pd.DataFrame.from_dict(data), "nb_hospital")
+            ]
+        else:
+            return [
+                fig.chiffres(fig.data, "nb_total"),
+                fig.chiffres(fig.data, "nb_mort"),
+                fig.chiffres(fig.data, "nb_hospital")
+            ]
+# ------------------------------------------------------------------------------------------------------
 # --------------------------------- Callback des graphiques -------------------------------------------------
 # ------------------------------------------------------------------------------------------------------
     @callback(
