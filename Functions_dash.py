@@ -201,10 +201,11 @@ def get_callbacks(app):
         ]
     )
     def update_density(selected_var,selected_annee, clickData, modalite_dropdown, data):
+        # Filter data based on global options
         if data is None:
             data_out = fig.data
         else:
-            data_out = data
+            data_out = pd.DataFrame.from_dict(data)
 
         # Filters data if clickData Exists
         if clickData is not None:
@@ -232,7 +233,7 @@ def get_callbacks(app):
         if data is None:
             data_out = fig.data
         else:
-            data_out = data
+            data_out = pd.DataFrame.from_dict(data)
 
         # Filters data if clickData Exists
         if clickData is not None:
@@ -445,14 +446,13 @@ def get_callbacks(app):
     def set_zone_geo(zone, code):
         if zone == 'all' or code is None:
             return no_update, True
-            #raise PreventUpdate
+            raise PreventUpdate
         if len(code) == 1:
             code = '0' + code
         else:
-            return fig.select_data(fig.data, {zone : [code]}).to_dict('records'), False
-        #else:
-         #   return 
-            
+            filtered = fig.data.query(f'{zone} in @code')
+            return filtered.to_dict('records'), False
+            #return fig.select_data(fig.data, {zone : [code]}).to_dict('records'), False 
             
 
         

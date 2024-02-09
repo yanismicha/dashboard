@@ -810,7 +810,7 @@ category_orders = {
 }
 
 
-def density(variable, annee, data = data, title_comp=None):
+def density(variable, annee, data: pd.DataFrame = data, title_comp=None):
     if variable == "all":
         if annee == 2004: # equivalent a all pour le slider
             df = data.groupby("an").size().reset_index(name="nb_accidents")
