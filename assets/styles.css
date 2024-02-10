@@ -51,6 +51,7 @@
 /*Text afficher dans dropdown*/
 .Select-value-label {
     color: var(--navbar-text-color) !important;
+    flex: auto;
 }
 
 /* dropdown menu options */
@@ -74,6 +75,26 @@
     opacity: .7;
 }
 
+/*Use to set drop downs to fill the full width of thier divs*/
+/*
+.Select-control{
+    width: 100% !important;
+}*/
+
+#graph-menu-span{
+    display: flex;
+}
+
+#pistes_button{
+    height: 100%;
+    max-width: 150px;
+}
+
+#niv_geo_dropdown{
+    width: 100% !important;
+    max-width: 150px;
+    margin-right: 5px;
+}
 
 /* border on focus - default is blue
  * shadow box around input box.  default is blue

@@ -14,11 +14,11 @@ import Figure as fig
 
 page_main = html.Div([
                 html.Div(id = "div-summary",
-                    children=[
-                            fig.nb_total,
-                            fig.nb_mort,
-                            fig.nb_hospital,
-                    ],
+                    #children=[
+                     #       fig.nb_total,
+                      #      fig.nb_mort,
+                       #     fig.nb_hospital,
+                    #],
                     style=fig.NUMBER_DIV_STYLE,
                 ),
                  dbc.Popover(
@@ -61,25 +61,54 @@ page_main = html.Div([
                             ], width=6),
                         dbc.Col(
                             [
-                                 dcc.Dropdown(
-                                        id='niv_geo_dropdown',
-                                        options=[
-                                            {'label': 'National', 'value': 'nat'}, 
-                                            {'label': 'Régional', 'value': 'reg'},
-                                            {'label': 'Départemental', 'value': 'dep'},
-                                        ],
-                                        value='nat',
-                                        clearable=False,
-                                        style={'width': '40%', "margin-bottom": "10px"}
-                                 ),
-                                dbc.Popover(
-                                        [
-                                            dbc.PopoverHeader("Choix de zone géographique"),
-                                            dbc.PopoverBody("Vous pouvez choisir la zone géographique à visualiser parmi nationale, régionale et départementale"),
-                                        ],
-                                        target='niv_geo_dropdown',
-                                        trigger="hover",
-                                ),
+                            html.Span(id = "graph-menu-span",
+                                      children = [
+                                                dcc.Dropdown(
+                                                        id='niv_geo_dropdown',
+                                                        options=[
+                                                            {'label': 'National', 'value': 'nat'}, 
+                                                            {'label': 'Régional', 'value': 'reg'},
+                                                            {'label': 'Départemental', 'value': 'dep'},
+                                                        ],
+                                                        value='nat',
+                                                        clearable=False,
+                                                        style={"margin-bottom": "10px"}
+                                                ),
+                                                dbc.Button(
+                                                    "Pistes cyclables",
+                                                    id="pistes_button",
+                                                    color="secondary",
+                                                    n_clicks=0,
+                                                ),
+                                                dbc.Popover(
+                                                        [
+                                                            dbc.PopoverHeader("Choix de zone géographique"),
+                                                            dbc.PopoverBody("Vous pouvez choisir la zone géographique à visualiser parmi nationale, régionale et départementale"),
+                                                        ],
+                                                        target='niv_geo_dropdown',
+                                                        trigger="hover",
+                                                ),
+                                                dbc.Popover(
+                                                    [
+                                                        dbc.PopoverHeader("Popover header"),
+                                                        dbc.PopoverBody(
+                                                            [
+                                                                dbc.Switch(
+                                                                        id="indic_switch",
+                                                                        label="Ratio",
+                                                                        value=False,
+                                                                ),
+                                                                dcc.Graph(id = "graph_popup"),
+                                                            ]
+                                                        ),
+                                                    ],
+                                                    id="pistes_popover",
+                                                    is_open=False,
+                                                    target="graph1",
+                                                    style={'maxWidth': '80%', 'width': '800px', 'maxHeight': '80%', 'height': '600px', 'overflowY': 'scroll'},
+
+                                                )
+                                        ]),
                                 dcc.Graph(id='graph1')
                             ], width=6),
                     ],
@@ -186,6 +215,21 @@ page_usager = html.Div([
                         style={'width': '50%','margin-bottom': '10px'}
                     ),
                     dbc.Button("Reset",id="reset-button",color="secondary", disabled=True),
+                    dbc.Popover(
+                            [
+                                dbc.PopoverHeader("Reset Filtre"),
+                                dbc.PopoverBody(
+                                    [
+                                        html.P("Vous pouvez filtrer les données en faisant un double clic sur une zone du diagramme circulaire."),
+                                        html.P("Les données seront filtrés en fonction de la tranche d'âge et de la gravité de la blessure"),
+                                        html.P("Ce boutton vous permet de rénitialiser le filtre. Vous pouvez également appuyer une seule fois sur une zone pour le rénitialiser")
+                                    ]
+                                )
+                            ],
+                            target='reset-button',
+                            trigger="hover",
+                            placement = "bottom"
+                    ),
                     dcc.Graph(id='graph6'),
                  ],
                     style=fig.DIV_STYLE
@@ -196,7 +240,7 @@ page_usager = html.Div([
 
 
 # --------------------------------------------------------------------------------------------------
-# ----------------------------------------- La carte -----------------------------------------------
+# ----------------------------------------- Les cartes -----------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
 fonte = {'color': 'black', "font-weight": "bold", "margin" : "0 0 1% 0"}
@@ -302,7 +346,7 @@ page_map_region_dep = html.Div([
                                                             {'label':"Département","value":'dep'}],
                                                    value = "reg",
                                                    clearable=False,
-                                                   style=drop_style,
+                                                   style={"margin" : "0 0 4% 0",'width': '70%'},
                                       ),
                                       html.Div(children=["Sélectionnez l'indicateur:"], style=fonte),
                                       dcc.Dropdown(id='dropdown_indic',
@@ -310,7 +354,7 @@ page_map_region_dep = html.Div([
                                                             {'label':"Taux pour 1000 habitants","value":'tx'}],
                                                    value = "qte",
                                                    clearable=False,
-                                                   style=drop_style,
+                                                   style={"margin" : "0 0 4% 0",'width': '100%', 'max-width': '190px'},
                                       ),
                                      dbc.Popover(
                                             [
@@ -328,12 +372,12 @@ page_map_region_dep = html.Div([
                                             placement="right"
                                      ),
                             ],
-                            style={'width' : '100%'}),
+                            style={'max-width' : '400px'}),
                     html.Div(className="float-child",
                              children=[dcc.Graph(id="map_region_dep")],
-                             style={'padding' : '0 0 0 2%'}
+                             style={'padding' : '0 0 0 2%', 'flex': 'auto'}
                             )
-                ],style={'display': 'flex', 'flexDirection': 'row'})
+                ],style={'display': 'flex', 'flexDirection': 'row', 'justify-content': 'center'})
             ],
             style=fig.DIV_STYLE
 )

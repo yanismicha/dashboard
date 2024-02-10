@@ -107,6 +107,28 @@ def unpack_mods(data_obj: tuple):
 def get_callbacks(app):
 
 # ------------------------------------------------------------------------------------------------------
+# --------------------------------- Callback des chiffres -------------------------------------------------
+# ------------------------------------------------------------------------------------------------------
+
+
+    @app.callback(
+    Output('div-summary', 'children'),
+    Input('data-store', 'data')
+    )
+    def update_summary_numbers(data):
+        if data != None:
+            return [
+                fig.chiffres(pd.DataFrame.from_dict(data), "nb_total"),
+                fig.chiffres(pd.DataFrame.from_dict(data), "nb_mort"),
+                fig.chiffres(pd.DataFrame.from_dict(data), "nb_hospital")
+            ]
+        else:
+            return [
+                fig.chiffres(fig.data, "nb_total"),
+                fig.chiffres(fig.data, "nb_mort"),
+                fig.chiffres(fig.data, "nb_hospital")
+            ]
+# ------------------------------------------------------------------------------------------------------
 # --------------------------------- Callback des graphiques -------------------------------------------------
 # ------------------------------------------------------------------------------------------------------
     @callback(
@@ -120,6 +142,29 @@ def get_callbacks(app):
 
         return fig.fig1(fig.data,niv_geo_update)
 
+        # ------------ Page 1 popup bar ------------------ 
+
+    @app.callback(
+        Output("pistes_popover", "is_open"),
+        [Input("pistes_button", "n_clicks")],
+        [State("pistes_popover", "is_open")],
+    )
+    def toggle_popover(n, is_open):
+        if n:
+            return not is_open
+        return is_open
+    
+    @app.callback(
+         Output('graph_popup', 'figure'),
+         Input('niv_geo_dropdown', 'value'),
+         Input('indic_switch', 'value')
+     )
+    def update_bar_popup(zone_geo, switch_value):
+        indicateur = "qte" if not switch_value else "ratio"
+        return fig.bar_popup(zone_geo, indicateur)
+
+
+        # ------------ Page 1 Animation chart ------------------ 
 
     @callback(
         Output('graph2', 'figure'),
@@ -131,7 +176,9 @@ def get_callbacks(app):
             return fig.fig2(speed_animation, pd.DataFrame.from_dict(data))
          
          return fig.fig2(speed_animation)
-        
+
+        # ------------ Page 1 temporal serie ------------------ 
+
     @callback(
             Output('graph3','figure'),
             Input('data-store', 'data')
@@ -141,8 +188,8 @@ def get_callbacks(app):
             return fig.fig3()
         
         return fig.fig3(pd.DataFrame.from_dict(data))
-
-
+        
+    
     # ------------ Page 2 Line chart ------------------ 
     @callback(
         Output('graph4', 'figure'),
@@ -154,10 +201,11 @@ def get_callbacks(app):
         ]
     )
     def update_density(selected_var,selected_annee, clickData, modalite_dropdown, data):
+        # Filter data based on global options
         if data is None:
             data_out = fig.data
         else:
-            data_out = data
+            data_out = pd.DataFrame.from_dict(data)
 
         # Filters data if clickData Exists
         if clickData is not None:
@@ -185,7 +233,7 @@ def get_callbacks(app):
         if data is None:
             data_out = fig.data
         else:
-            data_out = data
+            data_out = pd.DataFrame.from_dict(data)
 
         # Filters data if clickData Exists
         if clickData is not None:
@@ -198,6 +246,7 @@ def get_callbacks(app):
 
 
         return fig.bar(selected_var, selected_annee, data_out)
+
 
     # --------- Page 3 pie chart ----------------------
     @callback(
@@ -363,8 +412,6 @@ def get_callbacks(app):
     # --------------------------------- Callback region, departement selection -----------------------------
     # ------------------------------------------------------------------------------------------------------
 
-    # --------------------------------------------- Dropdown 1 -----------------------------------------------
-
     @app.callback(
     [Output('zone-selection', 'style'),
      Output('zone-selection', 'options'),
@@ -375,21 +422,8 @@ def get_callbacks(app):
         if value != 'all':
             all_options = {
                 'all': [],
-                'reg': [{'label': '84 Auvergne-Rhône-Alpes','value': 84},
-                        {'label': '32 Hauts-de-France','value': 32},
-                        {'label': '93 Provence-Alpes-Côte d\'Azur','value': 93},
-                        {'label': '75 Nouvelle-Aquitaine','value': 75},
-                        {'label': '24 Centre-Val de Loire','value': 24},
-                        {'label': '27 Bourgogne-Franche-Comté','value': 27},
-                        {'label': '28 Normandie','value': 28},
-                        {'label': '53 Bretagne','value': 53},
-                        {'label': '76 Occitanie','value': 76},
-                        {'label': '52 Pays de la Loire','value': 52},
-                        {'label': '44 Grand Est','value': 44},
-                        {'label': '11 Île-de-France','value': 11},
-                        {'label': '94 Corse','value': 94}
-                        ],
-                'dep': dict((nb, f"{nb} {nom}") for nom, nb in zip(fig.regions_code['nom_departement'].unique(), fig.regions_code['code_departement'].unique()))
+                'reg': dict((nb, f"{nb} {nom}") for nom, nb in zip(fig.data['region_name'].unique(), fig.data['reg'].unique())),
+                'dep': dict((nb, f"{nb} {nom}") for nom, nb in zip(fig.data['dep_name'].unique(), fig.data['dep'].unique()))
             }
     
             if value == "reg":
@@ -400,9 +434,9 @@ def get_callbacks(app):
             return {'visibility': 'visible'}, all_options[value], "Sélectionnez un" + text
     
         return {'visibility': 'hidden'}, [], ""
-    
 
-    # --------------------------------------------- Dropdown 2 -----------------------------------------------
+
+ # --------------------------------------------- Dropdown 2 -----------------------------------------------
 
     @callback(Output('data-store', 'data'),
               Output('data-store','clear_data'),
@@ -412,11 +446,10 @@ def get_callbacks(app):
     def set_zone_geo(zone, code):
         if zone == 'all' or code is None:
             return no_update, True
-            #raise PreventUpdate
-
-        # If the departement is of length 1 ('1') then append a 0 in front ('01')
-        if zone != 'reg':
-            if len(code) == 1:
-                code = '0' + code
-
-        return fig.select_data(fig.data, {zone : [code]}).to_dict('records'), False
+            raise PreventUpdate
+        if len(code) == 1:
+            code = '0' + code
+        else:
+            filtered = fig.data.query(f'{zone} in @code')
+            return filtered.to_dict('records'), False
+            #return fig.select_data(fig.data, {zone : [code]}).to_dict('records'), False 

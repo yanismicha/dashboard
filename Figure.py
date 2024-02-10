@@ -18,7 +18,9 @@ from time import sleep
 data= pd.read_csv("accidents-velos_clean.csv",low_memory=False)
 # on recupere les données infos dep et reg
 pop=pd.read_csv("pop_par_dep.csv",sep=";")
-regions_code = pd.read_csv("communes-departement-region.csv")
+pistes_par_com=pd.read_csv("pistes_com.csv")
+pistes_par_dep=pd.read_csv("pistes_dep.csv")
+pistes_par_reg=pd.read_csv("pistes_reg.csv")
 # geojson pour maps
 geojson_regions_url = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson'
 geojson_departements_url = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-avec-outre-mer.geojson'
@@ -40,10 +42,12 @@ mod_year = ["all"] + mod.tolist()
 
 #---------------- data accidents par region et departement -------------------#
 
-#on recode proprement les codes dep 
+#on recode proprement les codes dep et reg
 pop['Code Département']=pop['Code Département'].astype(str).str.zfill(2)
+data["reg"]=data["reg"].astype(str).str.zfill(2)
+
 # on récupère le nombre d'accident par dep
-accidents_par_dep = data.groupby(['dep','region_name']).size().reset_index(name = "nombre_accidents")
+accidents_par_dep = data.groupby(['dep','dep_name','region_name','reg']).size().reset_index(name = "nombre_accidents")
 # ajout des derniers départements outre mers
 pop.loc[len(pop)] = ['978','Saint-Martin',72240,"",""]
 pop.loc[len(pop)] = ['987','Polynésie française',306280,"",""]
@@ -51,22 +55,17 @@ pop.loc[len(pop)] = ['988','Nouvelle calédonie',210407,"",""]
 # tri par département
 pop = pop.sort_values('Code Département')
 # fusion des deux datas
-accidents_par_dep=pd.merge(accidents_par_dep, pop[['Code Département','Population','Département']], left_on='dep', right_on='Code Département', how='right')
+accidents_par_dep=pd.merge(accidents_par_dep, pop[['Code Département','Population','Département']], left_on='dep', right_on='Code Département', how='left')
 del accidents_par_dep['Code Département']
 # ajout de la variable ratio: nombre d'accidents pour 1000 habitants
 accidents_par_dep['ratio']=round(accidents_par_dep["nombre_accidents"]/accidents_par_dep["Population"].astype('int64')*1000,2)
 
-accidents_par_reg = accidents_par_dep.groupby('region_name').agg({
+accidents_par_reg = accidents_par_dep.groupby(['region_name','reg']).agg({
     'nombre_accidents': 'sum',
     'Population': 'sum',
     'ratio': 'mean'  
 }).reset_index()
-accidents_par_reg=pd.merge(accidents_par_reg, regions_code[['nom_region','code_region']], left_on='region_name',right_on='nom_region',how='right').drop_duplicates(subset='region_name', keep='first')
-del accidents_par_reg["nom_region"]
-accidents_par_reg.drop(38911,inplace=True)
-accidents_par_reg=accidents_par_reg.reset_index()
-del accidents_par_reg['index']
-colonnes_entiers = ['code_region', 'nombre_accidents', 'Population']
+colonnes_entiers = ['nombre_accidents', 'Population']
 # Conversion des colonnes en entiers
 accidents_par_reg[colonnes_entiers] = accidents_par_reg[colonnes_entiers].astype(int)
 accidents_par_reg['ratio']=np.round(accidents_par_reg['ratio'],2)
@@ -167,7 +166,7 @@ def build_selection(data: pd.DataFrame,
 
     return select_data(data, out)
 
-def data_filter(data: pd.DataFrame, x: str = None, y: str = None, x_select: ([] or None)  = None, y_select: ([] or None)  = None):
+def data_filter(data: pd.DataFrame, x: str = None, y: str = None, x_select: ([], None)  = None, y_select: ([] or None)  = None):
     """
     Returns the data filtered by maximum and minimun values for both columns x and y in the given dataframe data.
     To be used for filtering graphs based on the zoom of other graphs. 
@@ -292,43 +291,47 @@ NUMBER_DIV_STYLE={
 # --------------------------------------- Les chiffres ---------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
-style_div = {'width': '30%', 'display': 'inline-block'}
-style_nb_text1 = {'font-size': '100%', 'bottom' : '0%'}#{"margin": "0% 10% 0%"}#{'color' : 'white'}
-style_nb = {'font-size': '200%', 'margin' : '0%'}#{"text-align": "center", "margin" : "20px"}#{"display": "flex","justify-content": "center","align-items": "center"}
-style_nb_text2 = {'font-size': '100%'}
 
+def chiffres(data:pd.DataFrame=data,retour="nb_mort"):
+    style_div = {'width': '30%', 'display': 'inline-block'}
+    style_nb_text1 = {'font-size': '100%', 'bottom' : '0%'}#{"margin": "0% 10% 0%"}#{'color' : 'white'}
+    style_nb = {'font-size': '200%', 'margin' : '0%'}#{"text-align": "center", "margin" : "20px"}#{"display": "flex","justify-content": "center","align-items": "center"}
+    style_nb_text2 = {'font-size': '100%'}
 # Calcule
-mort_per = round(data[(data['an'] == data['an'].max()) & (data['grav'] == 'Tué')].count().iloc[0] / data[(data['an'] == data['an'].max()) & (data['grav'] != 'Tué')].count().iloc[0] * 100,
-                 0)
+    mort_per = round(data[(data['an'] == data['an'].max()) & (data['grav'] == 'Tué')].count().iloc[0] / data[(data['an'] == data['an'].max()) & (data['grav'] != 'Tué')].count().iloc[0] * 100,0)
+    
+    hosp_per = round(data[(data['an'] == 2021) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0]/ data[(data['an'] == data['an'].max())].count().iloc[0] * 100,0)
 
-hosp_per = round(data[(data['an'] == data['an'].max()) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0] / data[(data['an'] == data['an'].max()) & (data['grav'] != 'Blessé hospitalisé')].count().iloc[0] * 100,
-                 0)
-
-nb_total = html.Div(style=style_div,
-                  children=[html.P(style=style_nb_text1,
-                                   children=[f"Nombre d'accidents recensés en {data['an'].max()}:"]), 
-                            html.B(style=style_nb,
-                                   children=[f"{data[(data['an'] == data['an'].max())].count().iloc[0]}"])
-                                   ])
-
-
-nb_mort = html.Div(style=style_div,
-                  children=[html.P(style=style_nb_text1,
-                                   children=[f"Nombre de morts en {data['an'].max()}:"]), 
-                            html.B(style=style_nb,
-                                   children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Tué')].count().iloc[0]}"]),
-                            html.P(style=style_nb_text2,
-                                   children=[f"Représente {mort_per}% des accidents totaux."])
-                                   ])
-
-nb_hospital = html.Div(style=style_div,
-                  children=[html.P(style=style_nb_text1,
-                                   children=[f"Nombre d'hospitalisations en {data['an'].max()}:"]), 
-                            html.B(style=style_nb,
-                                   children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0]}"]),
-                                   html.P(style=style_nb_text2,
-                                   children=[f"Représente {hosp_per}% des accidents totaux."])
-                                   ])
+    #round(data[(data['an'] == data['an'].max()) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0] / data[(data['an'] == data['an'].max()) & (data['grav'] != 'Blessé hospitalisé')].count().iloc[0] * 100,0)  ce n'est pas le total!!
+    
+    if retour == 'nb_total':
+        return html.Div(style=style_div,
+                      children=[html.P(style=style_nb_text1,
+                                       children=[f"Nombre d'accidents recensés en {data['an'].max()}:"]), 
+                                html.B(style=style_nb,
+                                       children=[f"{data[(data['an'] == data['an'].max())].count().iloc[0]}"])
+                                       ])
+    
+    
+    elif retour == 'nb_mort':
+        return html.Div(style=style_div,
+                      children=[html.P(style=style_nb_text1,
+                                       children=[f"Nombre de morts en {data['an'].max()}:"]), 
+                                html.B(style=style_nb,
+                                       children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Tué')].count().iloc[0]}"]),
+                                html.P(style=style_nb_text2,
+                                       children=[f"Représente {mort_per}% des accidents totaux."])
+                                       ])
+    
+    else:
+        return html.Div(style=style_div,
+                      children=[html.P(style=style_nb_text1,
+                                       children=[f"Nombre d'hospitalisations en {data['an'].max()}:"]), 
+                                html.B(style=style_nb,
+                                       children=[f"{data[(data['an'] == data['an'].max()) & (data['grav'] == 'Blessé hospitalisé')].count().iloc[0]}"]),
+                                       html.P(style=style_nb_text2,
+                                       children=[f"Représente {hosp_per}% des accidents totaux."])
+                                       ])
 
 
 # --------------------------------------------------------------------------------------------------
@@ -357,35 +360,37 @@ def fig1(data_in,niveau_geo):
                                                 ]))
     
     elif niveau_geo== "reg":
-        accidents_par_annee_region = data_in.groupby(['an', 'region_name']).size().reset_index(name='Nombre_d_accidents')
+        accidents_par_annee_region = data_in.groupby(['an', 'region_name','reg']).size().reset_index(name='Nombre_d_accidents')
         #accidents_par_annee_region = Figure.data_filter(accidents_par_annee_region, 'an', 'Nombre_d_accidents', None, None)
         # Créer le lineplot pour la courbe évolutive par région
         fig1 = px.line(accidents_par_annee_region, x="an", y="Nombre_d_accidents",
                 color="region_name",
                 markers=True,
                 line_dash="region_name",
-                custom_data=['an', 'region_name', 'Nombre_d_accidents'])
+                custom_data=['an', 'region_name','reg','Nombre_d_accidents'])
         # Personnalisation du popup
         fig1.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
                                                 "Région : %{customdata[1]}",
-                                                "Nombre d'accidents : %{customdata[2]}"
+                                                "Code : %{customdata[2]}",
+                                                "Nombre d'accidents : %{customdata[3]}"
                                                 ]))
         fig1.update_layout(legend_title_text="Régions")
 
 
     else:
-        accidents_par_annee_dep = data_in.groupby(['an', 'dep']).size().reset_index(name='Nombre_d_accidents')
+        accidents_par_annee_dep = data_in.groupby(['an','dep_name','dep']).size().reset_index(name='Nombre_d_accidents')
         #accidents_par_annee_dep = Figure.data_filter(accidents_par_annee_dep, 'an', 'Nombre_d_accidents', None,None)
         # Créer le lineplot pour la courbe évolutive par région
         fig1 = px.line(accidents_par_annee_dep, x="an", y="Nombre_d_accidents",
-                color="dep",
+                color="dep_name",
                 markers=True,
                 line_dash="dep",
-                custom_data=['an', 'dep', 'Nombre_d_accidents'])
+                custom_data=['an','dep_name','dep', 'Nombre_d_accidents'])
         # Personnalisation du popup
         fig1.update_traces(hovertemplate="<br>".join(["Année : %{customdata[0]}",
                                                 "Département : %{customdata[1]}",
-                                                "Nombre d'accidents : %{customdata[2]}"
+                                                "Code : %{customdata[2]}",
+                                                "Nombre d'accidents : %{customdata[3]}"
                                                 ]))
         fig1.update_layout(legend_title_text="Départements")
         
@@ -568,6 +573,121 @@ def fig3(data:pd.DataFrame=data):
 
 
 # --------------------------------------------------------------------------------------------------
+# ----------------------------------------- barplot in popup -----------------------------------------------
+# --------------------------------------------------------------------------------------------------
+
+custom_purple_palette = [
+    '#180a24',
+    '#1f0d2e',
+    '#260f39',
+    '#2d1243',
+    '#34154e',
+    '#3b1758',
+    '#421a63',
+    '#491d6d',
+    '#501f77',
+    '#572282',
+    '#5e258c',
+    '#642797',
+    '#6b2aa1',
+    '#722dac',
+    '#792fb6',
+    '#8032c0',
+    '#8735cb',
+    '#8e37d5',
+    '#953ae0',
+    '#9c3dea',
+    '#a33ff5',
+    '#aa42ff'
+]
+
+custom_green_palette = [
+    '#054828',
+    '#05512d',
+    '#065932',
+    '#066237',
+    '#076b3c',
+    '#077441',
+    '#087c45',
+    '#08854a',
+    '#098e4f',
+    '#099654',
+    '#0a9f59',
+    '#0aa85e',
+    '#0bb163',
+    '#0bb968',
+    '#0cc26d',
+    '#0ccb72',
+    '#0dd376',
+    '#0ddc7b',
+    '#0ee580',
+    '#0eee85',
+    '#0ff68a',
+    '#0fff8f'
+]
+# fonction de maj pour les popups
+def update_popup(zone):
+    if zone == "reg":
+        return "<br>".join(["Région : %{customdata[0]}",
+                            "Code :  %{customdata[1]}",
+                            "Population : %{customdata[3]}",
+                            "Nombre de pistes cylables :  %{customdata[2]}",
+                            "Pour 1000 habitants : %{customdata[4]}"])
+    elif zone == "dep":
+        return "<br>".join(["Département : %{customdata[0]}",
+                            "Code :  %{customdata[1]}"
+                            "Population : %{customdata[3]}",
+                            "Nombre de pistes cylables :  %{customdata[2]}",
+                            "Pour 1000 habitants : %{customdata[4]}"])
+    else:
+        return "<br>".join(["Commune : %{customdata[0]}",
+                            "Code :  %{customdata[1]}",
+                            "Nombre de pistes cylables :  %{customdata[2]}"])
+
+
+
+def bar_popup(zone_geo,indicateur):
+    if indicateur == "qte":
+        if zone_geo == "reg":
+            fig = px.bar(pistes_par_reg, y="region_name", x="nombre_pistes_cyclables", color="region_name",
+                         color_discrete_sequence=custom_green_palette,custom_data=['region_name','reg','nombre_pistes_cyclables','Population','ratio'])
+            fig.update_layout(yaxis_title="Regions",legend_title_text="Regions")
+        elif zone_geo == "dep":
+            top_20_dep = pistes_par_dep.head(20)
+            fig = px.bar(top_20_dep, y="dep_name", x="nombre_pistes_cyclables",color="dep_name",
+                         color_discrete_sequence=custom_green_palette,custom_data=['dep_name','dep','nombre_pistes_cyclables','Population','ratio'])
+            fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Départements",legend_title_text="Départements")
+        else:
+            top_20_com = pistes_par_com.head(20)
+            fig = px.bar(top_20_com, y="com_name", x="nombre_pistes_cyclables", color="com_name",
+                         color_discrete_sequence=custom_green_palette,custom_data=['com_name','com','nombre_pistes_cyclables'])
+            fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Communes",legend_title_text="Communes")
+
+    else:
+        if zone_geo == "reg":
+            fig = px.bar(pistes_par_reg.sort_values(by="ratio",ascending=False), y="region_name", x="ratio", color="region_name",
+                         color_discrete_sequence=custom_purple_palette,custom_data=['region_name','reg','nombre_pistes_cyclables','Population','ratio'])
+            fig.update_layout(yaxis_title="Regions",legend_title_text="Regions")
+        elif zone_geo == "dep":
+            top_20_dep = pistes_par_dep.sort_values(by="ratio", ascending=False).head(20)
+            fig = px.bar(top_20_dep, y="dep_name", x="ratio", color="dep_name",
+                         color_discrete_sequence=custom_purple_palette,custom_data=['dep_name','dep','nombre_pistes_cyclables','Population','ratio'])
+            fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Départements",legend_title_text="Départements")
+        else:
+            top_20_com = pistes_par_com.sort_values(by="nombre_pistes_cyclables", ascending=False).head(20)
+            fig = px.bar(top_20_com, y="com_name", x="nombre_pistes_cyclables", color="com_name",
+                         color_discrete_sequence=custom_purple_palette,custom_data=['com_name','com','nombre_pistes_cyclables'])
+            fig.update_layout(yaxis=dict(tickmode='linear', dtick=1),yaxis_title="Communes",legend_title_text="Communes")
+        fig.update_layout(xaxis_title=" Nombre de pistes cyclables pour 1000 habitants")
+
+    fig.update_traces(hovertemplate=update_popup(zone_geo))
+    return fig
+
+
+
+
+
+# --------------------------------------------------------------------------------------------------
 # ----------------------------------------- Pie chart -----------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
@@ -690,7 +810,7 @@ category_orders = {
 }
 
 
-def density(variable, annee, data = data, title_comp=None):
+def density(variable, annee, data: pd.DataFrame = data, title_comp=None):
     if variable == "all":
         if annee == 2004: # equivalent a all pour le slider
             df = data.groupby("an").size().reset_index(name="nb_accidents")
@@ -803,7 +923,7 @@ def carte(color, an, mois, jour, catr, cbsm, atm):
                             custom_data=["date","hrmn","trajet", "int", "lum", 'com_name'],
                             color=unlist(color),
                             #color_discrete_sequence=color_select(unlist(color)),
-                            color_discrete_map = {'Blessé léger':'steelblue', 'Blessé hospitalisé':'orange', 'Tué':'red', 'Indemne':'lightgreen'},
+                            color_discrete_map = {'Blessé léger':'#6495ed', 'Blessé hospitalisé':'#ffa54f', 'Tué':'#ff6666', 'Indemne':'#4cae4c'},
                             height=700,
                             width=1000
                             )
@@ -831,9 +951,10 @@ def update_hovertemplate(is_region):
                             "Pour 1000 habitants : %{customdata[3]}"])
     else:
         return "<br>".join(["Département : %{customdata[0]}",
-                            "Population : %{customdata[2]}",
-                            "Nombre d'accidents :  %{customdata[1]}",
-                            "Pour 1000 habitants : %{customdata[3]}"])
+                            "Code :  %{customdata[1]}"
+                            "Population : %{customdata[3]}",
+                            "Nombre d'accidents :  %{customdata[2]}",
+                            "Pour 1000 habitants : %{customdata[4]}"])
 
 
 def fig_dep_reg(zoom,indicateur):
@@ -842,32 +963,32 @@ def fig_dep_reg(zoom,indicateur):
             fig = px.choropleth_mapbox(
             data_frame=accidents_par_reg,
             geojson=geojson_regions_url,
-            locations='code_region',
+            locations='reg',
             featureidkey='properties.code',
             color="nombre_accidents",
-            color_continuous_scale="thermal",
+            color_continuous_scale="Reds",
             mapbox_style="carto-positron",
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
-            zoom=4.6,
-            custom_data=["region_name","nombre_accidents","Population","ratio","code_region"],
+            zoom=5,
+            custom_data=["region_name","nombre_accidents","Population","ratio","reg"],
             )
             fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents')
         else:
             fig = px.choropleth_mapbox(
             data_frame=accidents_par_reg,
             geojson=geojson_regions_url,
-            locations='code_region',
+            locations='reg',
             featureidkey='properties.code',
             color="ratio",
-            color_continuous_scale="thermal",
+            color_continuous_scale="Reds",
             mapbox_style="carto-positron",
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
-            zoom=4.6,
-            custom_data=["region_name","nombre_accidents","Population","ratio","code_region"],
+            zoom=5,
+            custom_data=["region_name","nombre_accidents","Population","ratio","reg"],
             )
-            fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents pour 1000 habitants')
+            fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents<br>pour 1000 habitants')
         fig.update_traces(hovertemplate=update_hovertemplate(True))
 
     else:
@@ -878,13 +999,13 @@ def fig_dep_reg(zoom,indicateur):
             locations='dep',
             featureidkey='properties.code',
             color="nombre_accidents",
-            color_continuous_scale="thermal",
+            color_continuous_scale="Reds",
             mapbox_style="carto-positron",
             # on centre sur la france
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
-            zoom=4.6,
-            custom_data=["dep","nombre_accidents","Population","ratio"],
+            zoom=5,
+            custom_data=["dep_name","dep","nombre_accidents","Population","ratio"],
             )
             fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents')
         else:
@@ -894,17 +1015,20 @@ def fig_dep_reg(zoom,indicateur):
             locations='dep',
             featureidkey='properties.code',
             color="ratio",
-            color_continuous_scale="thermal",
+            color_continuous_scale="Reds",
             mapbox_style="carto-positron",
             # on centre sur la france
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
-            zoom=4.6,
-            custom_data=["dep","nombre_accidents","Population","ratio"],
+            zoom=5,
+            custom_data=["dep_name","dep","nombre_accidents","Population","ratio"],
             )
-            fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents pour 1000 habitants')
+            fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents<br>pour 1000 habitants')
         fig.update_traces(hovertemplate=update_hovertemplate(False))
-    fig.update_layout(height=700,width=1000)
+    fig.update_layout(height=700,margin={"r":0,"t":0,"l":0,"b":0})
 
     return fig
+
+
+
     
