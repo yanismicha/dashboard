@@ -45,6 +45,8 @@ mod_year = ["all"] + mod.tolist()
 #on recode proprement les codes dep et reg
 pop['Code Département']=pop['Code Département'].astype(str).str.zfill(2)
 data["reg"]=data["reg"].astype(str).str.zfill(2)
+pistes_par_dep["reg"]=pistes_par_dep["reg"].astype(str).str.split('.').str[0].str.zfill(2)
+pistes_par_reg["reg"]=pistes_par_reg["reg"].astype(str).str.split('.').str[0].str.zfill(2)
 
 # on récupère le nombre d'accident par dep
 accidents_par_dep = data.groupby(['dep','dep_name','region_name','reg']).size().reset_index(name = "nombre_accidents")
@@ -70,6 +72,19 @@ colonnes_entiers = ['nombre_accidents', 'Population']
 accidents_par_reg[colonnes_entiers] = accidents_par_reg[colonnes_entiers].astype(int)
 accidents_par_reg['ratio']=np.round(accidents_par_reg['ratio'],2)
 
+# on fusionne les informations pistes cyclables et accidents
+accidents_par_dep=pd.merge(accidents_par_dep,pistes_par_dep[['dep','nombre_pistes_cyclables','ratio']],on="dep",how='left')
+accidents_par_reg=pd.merge(accidents_par_reg,pistes_par_reg[['reg','nombre_pistes_cyclables','ratio']],on="reg",how='left')
+
+# on renomme les ratios pour éviter la confusion
+accidents_par_reg.rename(columns={"ratio_x": "ratio"}, inplace=True)
+accidents_par_reg.rename(columns={"ratio_y": "ratio_pistes"}, inplace=True)
+accidents_par_dep.rename(columns={"ratio_x": "ratio"}, inplace=True)
+accidents_par_dep.rename(columns={"ratio_y": "ratio_pistes"}, inplace=True)
+
+# on ajoute un ratio nombre accident sur nombre de pistes cyclables
+accidents_par_dep["ratio_accident_piste"]=round(accidents_par_dep["nombre_accidents"]/accidents_par_dep["nombre_pistes_cyclables"],2)
+accidents_par_reg["ratio_accident_piste"]=round(accidents_par_reg["nombre_accidents"]/accidents_par_reg["nombre_pistes_cyclables"],2)
 
 # --------------------------------------------------------------------------------------------------
 # ------------------------------------------ Fonctions ------------------------------------------------
@@ -166,7 +181,7 @@ def build_selection(data: pd.DataFrame,
 
     return select_data(data, out)
 
-def data_filter(data: pd.DataFrame, x: str = None, y: str = None, x_select: ([] or None)  = None, y_select: ([] or None)  = None):
+def data_filter(data: pd.DataFrame, x: str = None, y: str = None, x_select: ([], None)  = None, y_select: ([] or None)  = None):
     """
     Returns the data filtered by maximum and minimun values for both columns x and y in the given dataframe data.
     To be used for filtering graphs based on the zoom of other graphs. 
@@ -948,18 +963,24 @@ def update_hovertemplate(is_region):
                             "Code :  %{customdata[4]}",
                             "Population : %{customdata[2]}",
                             "Nombre d'accidents :  %{customdata[1]}",
-                            "Pour 1000 habitants : %{customdata[3]}"])
+                            "Pour 1000 habitants : %{customdata[3]}",
+                            "Nombre de pistes cyclables : %{customdata[5]}",
+                            "Pour 1000 habitants : %{customdata[6]}",
+                            "Ratio accidents/pistes : %{customdata[7]}"])
     else:
         return "<br>".join(["Département : %{customdata[0]}",
                             "Code :  %{customdata[1]}"
                             "Population : %{customdata[3]}",
                             "Nombre d'accidents :  %{customdata[2]}",
-                            "Pour 1000 habitants : %{customdata[4]}"])
+                            "Pour 1000 habitants : %{customdata[4]}",
+                            "Nombre de pistes cyclables : %{customdata[5]}",
+                            "Pour 1000 habitants : %{customdata[6]}",
+                            "Ratio accidents/pistes : %{customdata[7]}"])
 
 
 def fig_dep_reg(zoom,indicateur):
     if zoom=="reg":
-        if indicateur =="qte":
+        if indicateur =="qte_acc":
             fig = px.choropleth_mapbox(
             data_frame=accidents_par_reg,
             geojson=geojson_regions_url,
@@ -970,10 +991,55 @@ def fig_dep_reg(zoom,indicateur):
             mapbox_style="carto-positron",
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
-            zoom=4.6,
-            custom_data=["region_name","nombre_accidents","Population","ratio","reg"],
+            zoom=5,
+            custom_data=["region_name","nombre_accidents","Population","ratio","reg","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
             )
             fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents')
+        elif indicateur == "qte_pistes":
+            fig = px.choropleth_mapbox(
+            data_frame=accidents_par_reg,
+            geojson=geojson_regions_url,
+            locations='reg',
+            featureidkey='properties.code',
+            color="nombre_pistes_cyclables",
+            color_continuous_scale="Reds",
+            mapbox_style="carto-positron",
+            center={"lat": 46.7111, "lon": 1.7191},
+            opacity=0.5,
+            zoom=5,
+            custom_data=["region_name","nombre_accidents","Population","ratio","reg","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
+            )
+            fig.update_layout(coloraxis_colorbar_title='Nombre de pistes cyclables')
+        elif indicateur == "tx_pistes":
+            fig = px.choropleth_mapbox(
+            data_frame=accidents_par_reg,
+            geojson=geojson_regions_url,
+            locations='reg',
+            featureidkey='properties.code',
+            color="ratio_pistes",
+            color_continuous_scale="Reds",
+            mapbox_style="carto-positron",
+            center={"lat": 46.7111, "lon": 1.7191},
+            opacity=0.5,
+            zoom=5,
+            custom_data=["region_name","nombre_accidents","Population","ratio","reg","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
+            )
+            fig.update_layout(coloraxis_colorbar_title='Nombre de pistes cyclables<br>pour 1000 habitants')
+        elif indicateur == "tx_acc_pistes":
+            fig = px.choropleth_mapbox(
+            data_frame=accidents_par_reg,
+            geojson=geojson_regions_url,
+            locations='reg',
+            featureidkey='properties.code',
+            color="ratio_accident_piste",
+            color_continuous_scale="Reds",
+            mapbox_style="carto-positron",
+            center={"lat": 46.7111, "lon": 1.7191},
+            opacity=0.5,
+            zoom=5,
+            custom_data=["region_name","nombre_accidents","Population","ratio","reg","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
+            )
+            fig.update_layout(coloraxis_colorbar_title='Ratio<br>Accidents/pistes cyclables')
         else:
             fig = px.choropleth_mapbox(
             data_frame=accidents_par_reg,
@@ -985,14 +1051,14 @@ def fig_dep_reg(zoom,indicateur):
             mapbox_style="carto-positron",
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
-            zoom=4.6,
-            custom_data=["region_name","nombre_accidents","Population","ratio","reg"],
+            zoom=5,
+            custom_data=["region_name","nombre_accidents","Population","ratio","reg","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
             )
-            fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents pour 1000 habitants')
+            fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents<br>pour 1000 habitants')
         fig.update_traces(hovertemplate=update_hovertemplate(True))
 
     else:
-        if indicateur == "qte":
+        if indicateur == "qte_acc":
             fig = px.choropleth_mapbox(
             data_frame=accidents_par_dep,
             geojson=geojson_departements_url,
@@ -1004,10 +1070,58 @@ def fig_dep_reg(zoom,indicateur):
             # on centre sur la france
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
-            zoom=4.6,
-            custom_data=["dep_name","dep","nombre_accidents","Population","ratio"],
+            zoom=5,
+            custom_data=["dep_name","dep","nombre_accidents","Population","ratio","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
             )
             fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents')
+        elif indicateur == "qte_pistes":
+            fig = px.choropleth_mapbox(
+            data_frame=accidents_par_dep,
+            geojson=geojson_departements_url,
+            locations='dep',
+            featureidkey='properties.code',
+            color="nombre_pistes_cyclables",
+            color_continuous_scale="Reds",
+            mapbox_style="carto-positron",
+            # on centre sur la france
+            center={"lat": 46.7111, "lon": 1.7191},
+            opacity=0.5,
+            zoom=5,
+            custom_data=["dep_name","dep","nombre_accidents","Population","ratio","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
+            )
+            fig.update_layout(coloraxis_colorbar_title='Nombre de pistes cyclables')
+        elif indicateur == "tx_pistes":
+            fig = px.choropleth_mapbox(
+            data_frame=accidents_par_dep,
+            geojson=geojson_departements_url,
+            locations='dep',
+            featureidkey='properties.code',
+            color="ratio_pistes",
+            color_continuous_scale="Reds",
+            mapbox_style="carto-positron",
+            # on centre sur la france
+            center={"lat": 46.7111, "lon": 1.7191},
+            opacity=0.5,
+            zoom=5,
+            custom_data=["dep_name","dep","nombre_accidents","Population","ratio","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
+            )
+            fig.update_layout(coloraxis_colorbar_title='Nombre de pistes cyclables')
+        elif indicateur == "tx_acc_pistes":
+            fig = px.choropleth_mapbox(
+            data_frame=accidents_par_dep,
+            geojson=geojson_departements_url,
+            locations='dep',
+            featureidkey='properties.code',
+            color="ratio_accident_piste",
+            color_continuous_scale="Reds",
+            mapbox_style="carto-positron",
+            # on centre sur la france
+            center={"lat": 46.7111, "lon": 1.7191},
+            opacity=0.5,
+            zoom=5,
+            custom_data=["dep_name","dep","nombre_accidents","Population","ratio","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
+            )
+            fig.update_layout(coloraxis_colorbar_title='Ratio<br>Accidents/pistes cyclables')
         else:
             fig = px.choropleth_mapbox(
             data_frame=accidents_par_dep,
@@ -1020,12 +1134,12 @@ def fig_dep_reg(zoom,indicateur):
             # on centre sur la france
             center={"lat": 46.7111, "lon": 1.7191},
             opacity=0.5,
-            zoom=4.6,
-            custom_data=["dep_name","dep","nombre_accidents","Population","ratio"],
+            zoom=5,
+            custom_data=["dep_name","dep","nombre_accidents","Population","ratio","nombre_pistes_cyclables","ratio_pistes","ratio_accident_piste"],
             )
-            fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents pour 1000 habitants')
+            fig.update_layout(coloraxis_colorbar_title='Nombre d\'accidents<br>pour 1000 habitants')
         fig.update_traces(hovertemplate=update_hovertemplate(False))
-    fig.update_layout(height=700,width=1000)
+    fig.update_layout(height=700,margin={"r":0,"t":0,"l":0,"b":0})
 
     return fig
 

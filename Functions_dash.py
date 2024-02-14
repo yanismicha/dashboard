@@ -453,8 +453,3 @@ def get_callbacks(app):
             filtered = fig.data.query(f'{zone} in @code')
             return filtered.to_dict('records'), False
             #return fig.select_data(fig.data, {zone : [code]}).to_dict('records'), False 
-            
-
-        
-
-        

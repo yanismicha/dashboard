@@ -14,11 +14,11 @@ import Figure as fig
 
 page_main = html.Div([
                 html.Div(id = "div-summary",
-                    children=[
-                            fig.chiffres(fig.data,"nb_total"),
-                            fig.chiffres(fig.data,"nb_mort"),
-                            fig.chiffres(fig.data,"nb_hospital"),
-                    ],
+                    #children=[
+                     #       fig.nb_total,
+                      #      fig.nb_mort,
+                       #     fig.nb_hospital,
+                    #],
                     style=fig.NUMBER_DIV_STYLE,
                 ),
                  dbc.Popover(
@@ -61,52 +61,53 @@ page_main = html.Div([
                             ], width=6),
                         dbc.Col(
                             [
-                                 dcc.Dropdown(
-                                        id='niv_geo_dropdown',
-                                        options=[
-                                            {'label': 'National', 'value': 'nat'}, 
-                                            {'label': 'Régional', 'value': 'reg'},
-                                            {'label': 'Départemental', 'value': 'dep'},
-                                        ],
-                                        value='nat',
-                                        clearable=False,
-                                        style={'width': '40%', "margin-bottom": "10px"}
-                                 ),
-                                dbc.Popover(
-                                        [
-                                            dbc.PopoverHeader("Choix de zone géographique"),
-                                            dbc.PopoverBody("Vous pouvez choisir la zone géographique à visualiser parmi nationale, régionale et départementale"),
-                                        ],
-                                        target='niv_geo_dropdown',
-                                        trigger="hover",
-                                ),
-                                dbc.Button(
-                                    "Pistes cyclables",
-                                    id="pistes_button",
-                                    color="secondary",
-                                    className="me-4",
-                                    n_clicks=0,
-                                ),
-                                dbc.Popover(
-                                    [
-                                        dbc.PopoverHeader("Pistes cyclables"),
-                                        dbc.PopoverBody(
-                                            [
-                                                dbc.Switch(
-                                                        id="indic_switch",
-                                                        label="Ratio",
-                                                        value=False,
+                            html.Span(id = "graph-menu-span",
+                                      children = [
+                                                dcc.Dropdown(
+                                                        id='niv_geo_dropdown',
+                                                        options=[
+                                                            {'label': 'National', 'value': 'nat'}, 
+                                                            {'label': 'Régional', 'value': 'reg'},
+                                                            {'label': 'Départemental', 'value': 'dep'},
+                                                        ],
+                                                        value='nat',
+                                                        clearable=False,
+                                                        style={"margin-bottom": "10px"}
                                                 ),
-                                                dcc.Graph(id = "graph_popup"),
-                                            ]
-                                        ),
-                                    ],
-                                    id="pistes_popover",
-                                    is_open=False,
-                                    target="graph1",
-                                    style={'maxWidth': '80%', 'width': '800px', 'maxHeight': '80%', 'height': '600px', 'overflowY': 'scroll'},
-
-                                ),
+                                                dbc.Button(
+                                                    "Pistes cyclables",
+                                                    id="pistes_button",
+                                                    color="secondary",
+                                                    n_clicks=0,
+                                                ),
+                                                dbc.Popover(
+                                                        [
+                                                            dbc.PopoverHeader("Choix de zone géographique"),
+                                                            dbc.PopoverBody("Vous pouvez choisir la zone géographique à visualiser parmi nationale, régionale et départementale"),
+                                                        ],
+                                                        target='niv_geo_dropdown',
+                                                        trigger="hover",
+                                                ),
+                                                dbc.Popover(
+                                                    [
+                                                        dbc.PopoverHeader("Pistes cyclables sur le territoire français"),
+                                                        dbc.PopoverBody(
+                                                            [
+                                                                dbc.Switch(
+                                                                        id="indic_switch",
+                                                                        label="Ratio",
+                                                                        value=False,
+                                                                ),
+                                                                dcc.Graph(id = "graph_popup"),
+                                                            ]
+                                                        ),
+                                                    ],
+                                                    id="pistes_popover",
+                                                    is_open=False,
+                                                    target="graph1",
+                                                    style={'maxWidth': '80%', 'width': '800px', 'maxHeight': '80%', 'height': '600px', 'overflowY': 'scroll'},
+                                                )
+                                        ]),
                                 dcc.Graph(id='graph1')
                             ], width=6),
                     ],
@@ -238,7 +239,7 @@ page_usager = html.Div([
 
 
 # --------------------------------------------------------------------------------------------------
-# ----------------------------------------- La carte -----------------------------------------------
+# ----------------------------------------- Les cartes -----------------------------------------------
 # --------------------------------------------------------------------------------------------------
 
 fonte = {'color': 'black', "font-weight": "bold", "margin" : "0 0 1% 0"}
@@ -344,15 +345,18 @@ page_map_region_dep = html.Div([
                                                             {'label':"Département","value":'dep'}],
                                                    value = "reg",
                                                    clearable=False,
-                                                   style=drop_style,
+                                                   style={"margin" : "0 0 4% 0",'width': '70%'},
                                       ),
                                       html.Div(children=["Sélectionnez l'indicateur:"], style=fonte),
                                       dcc.Dropdown(id='dropdown_indic',
-                                                   options=[{'label':"Nombre d'accidents ","value":'qte'},
-                                                            {'label':"Taux pour 1000 habitants","value":'tx'}],
+                                                   options=[{'label':"Nombre d'accidents ","value":'qte_acc'},
+                                                            {'label':"Taux d'accidents pour 1000 habitants","value":'tx_acc'},
+                                                            {'label':"Nombre de pistes cyclables","value":'qte_pistes'},
+                                                            {'label':"Taux de pistes cyclables pour 1000 habitants","value":'tx_pistes'},
+                                                            {'label':"Ratio d'accidents/pistes cyclables","value":'tx_acc_pistes'}],
                                                    value = "qte",
                                                    clearable=False,
-                                                   style=drop_style,
+                                                   style={"margin" : "0 0 4% 0",'width': '100%', 'max-width': '190px'},
                                       ),
                                      dbc.Popover(
                                             [
@@ -362,6 +366,11 @@ page_map_region_dep = html.Div([
                                                     html.P([html.Strong("Ici vous pouvez sélectionner l'indicateur qui sera représenté sur la carte:")]),
                                                     html.P([html.Strong("Nombre d'accidents:"), " représente le nombre d'accidents total par région/département"]),
                                                     html.P([html.Strong("Taux pour 1000 habitants:"), " représente le nombre d'accidents en proportion de la population de la zone géographique visualisée"]),
+                                                    html.P([html.Strong("Nombre de pistes cyclables:"), " représente le nombre d'enbranchements de pistes cyclables par région/département"]),
+                                                    html.P([html.Strong("Taux de pistes cyclables pour 1000 habitants:"), " représente le nombre de pistes cyclables en proportion de la population de la zone géographique visualisée"]),
+                                                    
+                                                    html.P([html.Strong("Ratio d'accidents/pistes cyclables:"), " représente le ratio entre accidents et pistes cyclables. Un nombre élevé signifie que le nombre d'accidents est très élevé par rapport aux nombre de pistes cyclables présentes dans la zone en question."]),
+                                                    
                                                 ]
                                                 )
                                             ],
@@ -370,12 +379,12 @@ page_map_region_dep = html.Div([
                                             placement="right"
                                      ),
                             ],
-                            style={'width' : '100%'}),
+                            style={'max-width' : '400px'}),
                     html.Div(className="float-child",
                              children=[dcc.Graph(id="map_region_dep")],
-                             style={'padding' : '0 0 0 2%'}
+                             style={'padding' : '0 0 0 2%', 'flex': 'auto'}
                             )
-                ],style={'display': 'flex', 'flexDirection': 'row'})
+                ],style={'display': 'flex', 'flexDirection': 'row', 'justify-content': 'center'})
             ],
             style=fig.DIV_STYLE
 )
