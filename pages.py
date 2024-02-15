@@ -19,7 +19,8 @@ page_main = html.Div([
                       #      fig.nb_mort,
                        #     fig.nb_hospital,
                     #],
-                    style=fig.NUMBER_DIV_STYLE,
+                    #style=fig.NUMBER_DIV_STYLE,
+                    className="NUMBER_DIV_STYLE"
                 ),
                  dbc.Popover(
                         [
@@ -56,6 +57,7 @@ page_main = html.Div([
                                         ],
                                         target='speed-dropdown',
                                         trigger="hover",
+                                        id="popover-vitesse-animation",
                                 ),
                                 dcc.Graph(id='graph2')
                             ], width=6),
@@ -113,11 +115,13 @@ page_main = html.Div([
                     ],
                      ),
                 ],
-                style=fig.DIV_STYLE
+                #style=fig.DIV_STYLE,
+                className="DIV_STYLE"
             ),
              html.Div(
                 dcc.Graph(id='graph3'),
-                style=fig.DIV_STYLE,
+                #style=fig.DIV_STYLE,
+                className="DIV_STYLE"
             ),
             
         ])
@@ -128,7 +132,8 @@ page_main = html.Div([
 page_usager = html.Div([
                 html.Div(
                     html.H1("Description des accidents et état/situation des usagers mis en cause",id = "div-title"),
-                    style=fig.DIV_STYLE,
+                    #style=fig.DIV_STYLE,
+                    className="DIV_STYLE"
                 ),
                 dbc.Popover(
                             [
@@ -161,7 +166,7 @@ page_usager = html.Div([
                                             ],
                                             value="all",
                                             clearable=False,
-                                            style={'width': '50%', "margin-top": "5px"}
+                                            style={'width': '38%', "margin-top": "5px"}
                                         ),
                                         #dcc.Dropdown(
                                          #   id='annee2-dropdown',
@@ -202,7 +207,8 @@ page_usager = html.Div([
                             placement = "bottom"
                         )
                     ],
-                    style=fig.DIV_STYLE
+                    #style=fig.DIV_STYLE,
+                    className="DIV_STYLE"
                 ),
                  html.Div([
                      "Gravité de la blessure:",
@@ -211,7 +217,7 @@ page_usager = html.Div([
                         options=[{'label': modalite, 'value': modalite} for modalite in ["all"] + fig.data["grav"].unique().tolist()],
                         value=fig.data['grav'].unique()[2],  
                         clearable=False,
-                        style={'width': '50%','margin-bottom': '10px'}
+                        style={'width': '33%','margin-bottom': '10px'}
                     ),
                     dbc.Button("Reset",id="reset-button",color="secondary", disabled=True),
                     dbc.Popover(
@@ -231,7 +237,8 @@ page_usager = html.Div([
                     ),
                     dcc.Graph(id='graph6'),
                  ],
-                    style=fig.DIV_STYLE
+                    #style=fig.DIV_STYLE,
+                    className="DIV_STYLE"
                  ),
                 
             ])
@@ -330,7 +337,8 @@ page_map = html.Div([
             
                 ],style={'display': 'flex', 'flexDirection': 'row'})
             ],
-            style=fig.DIV_STYLE
+            #style=fig.DIV_STYLE,
+            className="DIV_STYLE",
 )
                             
 
@@ -354,9 +362,10 @@ page_map_region_dep = html.Div([
                                                             {'label':"Nombre de pistes cyclables","value":'qte_pistes'},
                                                             {'label':"Taux de pistes cyclables pour 1000 habitants","value":'tx_pistes'},
                                                             {'label':"Ratio d'accidents/pistes cyclables","value":'tx_acc_pistes'}],
-                                                   value = "qte",
+                                                   value = "qte_acc",
                                                    clearable=False,
                                                    style={"margin" : "0 0 4% 0",'width': '100%', 'max-width': '190px'},
+                                                   optionHeight=80,
                                       ),
                                      dbc.Popover(
                                             [
@@ -386,5 +395,6 @@ page_map_region_dep = html.Div([
                             )
                 ],style={'display': 'flex', 'flexDirection': 'row', 'justify-content': 'center'})
             ],
-            style=fig.DIV_STYLE
+            #style=fig.DIV_STYLE,
+            className="DIV_STYLE",
 )

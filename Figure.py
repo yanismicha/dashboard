@@ -181,7 +181,7 @@ def build_selection(data: pd.DataFrame,
 
     return select_data(data, out)
 
-def data_filter(data: pd.DataFrame, x: str = None, y: str = None, x_select: ([], None)  = None, y_select: ([] or None)  = None):
+def data_filter(data: pd.DataFrame, x: str = None, y: str = None, x_select: None = None, y_select: None = None):
     """
     Returns the data filtered by maximum and minimun values for both columns x and y in the given dataframe data.
     To be used for filtering graphs based on the zoom of other graphs. 
@@ -216,90 +216,6 @@ def data_filter(data: pd.DataFrame, x: str = None, y: str = None, x_select: ([],
         data = data[(data[y] > y_select[0]) & (data[y] < y_select[1])]
 
     return data
-
-
-
-
-
-# --------------------------------------------------------------------------------------------------
-# ------------------------------------------ Styles ------------------------------------------------
-# --------------------------------------------------------------------------------------------------
-
-
-SIDEBAR_STYLE = {
-    "position": "fixed",
-    "top": 62.5,
-    "left": 0,
-    "bottom": 0,
-    "width": "16rem",
-    "padding": "2rem 1rem",
-    "transition": "all 0.5s",
-    "background-color": "#f8f9fa",
-}
-
-SIDEBAR_HIDEN = {
-    "position": "fixed",
-    "top": 62.5,
-    "left": "-16rem",
-    "bottom": 0,
-    "width": "16rem",
-    "height": "100%",
-    "z-index": 1,
-    "overflow-x": "hidden",
-    "transition": "all 0.5s",
-    "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
-}
-
-
-# the styles for the main content position it to the right of the sidebar and
-# add some padding.
-CONTENT_STYLE = {
-    "transition": "margin-left .5s",
-    "margin-left": "18rem",
-    "margin-right": "2rem",
-    "padding": "2rem 1rem",
-}
-
-
-
-CONTENT_STYLE1 = {
-    "transition": "margin-left .5s",
-    "margin-left": "2rem",
-    "margin-right": "2rem",
-    "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
-}
-
-
-DIV_STYLE={
-    "border": "0px solid black",
-    "padding": "10px 20px",
-    "border-radius": "25px",
-    "text-align": "left",
-    "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-    "background": "#ffffff",
-    "margin-bottom": "20px"
-}
-
-NUMBER_DIV_STYLE={
-        # My add
-    'text-align': 'center', 
-    'height': '100%', 
-    'display': 'flex', 
-    'flex-direction': 'row', 
-    'justify-content': 'center', 
-    'align-items': 'center',
-    # default style
-    "border": "0px solid black",
-    "padding": "10px 20px",
-    "border-radius": "25px",
-    "text-align": "center",
-    "box-shadow": "0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6",
-    "background": "#ffffff",
-    "margin-bottom": "20px",
-    "height": "200px"
-}
 
 
 # --------------------------------------------------------------------------------------------------
@@ -362,7 +278,7 @@ def fig1(data_in,niveau_geo):
     if niveau_geo== "nat":
         # on calcul les occurences des accidents par année
         accidents_par_annee = data_in.groupby('an').size().reset_index(name='Nombre_d_accidents')
-        sleep(0.2) # Used to prevent a rendering bug between the px.line() and the grouby() data
+        sleep(0.4) # Used to prevent a rendering bug between the px.line() and the grouby() data
         # Créer le lineplot pour la courbe évolutive
         fig1 = px.line(accidents_par_annee, x="an", y="Nombre_d_accidents",
                     markers=True,
@@ -1142,7 +1058,3 @@ def fig_dep_reg(zoom,indicateur):
     fig.update_layout(height=700,margin={"r":0,"t":0,"l":0,"b":0})
 
     return fig
-
-
-
-    
