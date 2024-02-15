@@ -216,7 +216,7 @@ def get_callbacks(app):
             
             return fig.density(selected_var,selected_annee, filtered_data, " " + str(clickData['points'][0]["label"]).lower())# Set title comp to the filtered value
         
-        return fig.density(selected_var,selected_annee)
+        return fig.density(selected_var,selected_annee, data_out)
     
     # --------- Page 2 Bar chart ----------------------
     @callback(
@@ -349,8 +349,8 @@ def get_callbacks(app):
 
     @app.callback(
         [
-            Output("sidebar", "style"),
-            Output("page-content", "style"),
+            Output("sidebar", "className"),
+            Output("page-content", "className"),
             Output("side_click", "data"),
         ],
 
@@ -362,16 +362,16 @@ def get_callbacks(app):
     def toggle_sidebar(n, nclick):
         if n:
             if nclick == "SHOW":
-                sidebar_style = fig.SIDEBAR_HIDEN
-                content_style = fig.CONTENT_STYLE1
+                sidebar_style = "SIDEBAR_HIDEN"#fig.SIDEBAR_HIDEN
+                content_style = "CONTENT_STYLE1"#fig.CONTENT_STYLE1
                 cur_nclick = "HIDDEN"
             else:
-                sidebar_style = fig.SIDEBAR_STYLE
-                content_style = fig.CONTENT_STYLE
+                sidebar_style = "SIDEBAR_STYLE"#fig.SIDEBAR_STYLE
+                content_style = "CONTENT_STYLE"#fig.CONTENT_STYLE
                 cur_nclick = "SHOW"
         else:
-            sidebar_style = fig.SIDEBAR_STYLE
-            content_style = fig.CONTENT_STYLE
+            sidebar_style = "SIDEBAR_STYLE"#fig.SIDEBAR_STYLE
+            content_style = "CONTENT_STYLE"#fig.CONTENT_STYLE
             cur_nclick = 'SHOW'
 
         return sidebar_style, content_style, cur_nclick

@@ -11,7 +11,88 @@
     color: white;
 }
 
+#popover-zone-geo{
+    position: absolute; 
+    inset: 0px auto auto 0px; 
+    transform: translate(250px, 5px) !important;
+}
 
+
+#popover-vitesse-animation {
+    position: absolute; 
+    inset: 0px auto auto 0px; 
+    transform: translate(450px, 276px) !important;
+}
+
+div.SIDEBAR_STYLE {
+    position: fixed;
+    top: 62.5px;
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    padding: 2rem 1rem;
+    transition: all 0.5s;
+    background-color: #f8f9fa;
+}
+
+div.SIDEBAR_HIDEN {
+    position: fixed;
+    top: 62.5px;
+    left: -16rem;
+    bottom: 0;
+    width: 16rem;
+    height: 100%;
+    z-index: 1;
+    overflow-x: hidden;
+    transition: all 0.5s;
+    padding: 2rem 1rem;
+    background-color: #f8f9fa;
+}
+
+div.CONTENT_STYLE {
+    transition: margin-left .5s;
+    margin-left: 18rem;
+    margin-right: 2rem;
+    padding: 2rem 1rem;
+}
+
+div.CONTENT_STYLE1 {
+    transition: margin-left .5s;
+    margin-left: 2rem;
+    margin-right: 2rem;
+    padding: 2rem 1rem;
+    background-color: #f8f9fa;
+}
+
+
+div.DIV_STYLE{
+    border: 0px solid black;
+    padding: 10px 20px;
+    border-radius: 25px;
+    text-align: left;
+    box-shadow: 0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6;
+    background: #ffffff;
+    margin-bottom: 20px;
+}
+
+div.NUMBER_DIV_STYLE{
+    /*My add*/
+    text-align: 'center'; 
+    height: 100%; 
+    display: flex; 
+    flex-direction: row; 
+    justify-content: center; 
+    align-items: center;
+     /*default style*/
+    border: 0px solid black;
+    padding: 10px 20px;
+    border-radius: 25px;
+    text-align: center;
+    box-shadow: 0 0 0 transparent, 0 0 0 transparent, 6px 4px 25px #d6d6d6;
+    background: #ffffff;
+    margin-bottom: 20px;
+    height: 200px;
+}
 
 /*https://community.plotly.com/t/change-textcolor-for-dropdown-menu/35230*/
 
@@ -28,23 +109,24 @@
     margin-left: 10%
 }
 
+/* Set dropdown options size*/
+#zone-data-filter .Select-menu-outer{
+    width:355% !important;
+    margin-left: 10%
+  }
+
 #zone-selection .Select-control{
     color: var(--navbar-item-background-color) !important;
     border-color: var(--navbar-item-border-color) !important;
     background-color: var(--navbar-item-background-color) !important;
-    width: 355% !important;
+    width: 545% !important;
     margin-left: 275%
 }
 
-/* Set dropdown options size*/
-#zone-data-filter .Select-menu-outer{
-    width:300% !important;
-    margin-left: 10%
-  }
-
 #zone-selection .Select-menu-outer{
     width:600% !important;
-    margin-left: 270%
+    margin-left: 270%;
+    /*max-width: 550%;*/
 }
 
 
@@ -56,7 +138,7 @@
 
 /* dropdown menu options */
 .VirtualizedSelectOption {
-    background-color: var(--navbar-item-background-color);
+background-color: var(--navbar-item-background-color);
     color: white;
  }
 
@@ -75,11 +157,53 @@
     opacity: .7;
 }
 
-/*Use to set drop downs to fill the full width of thier divs*/
-/*
-.Select-control{
-    width: 100% !important;
-}*/
+/*Map dropdown menu width*/
+#dropdown_an>.Select>.Select-menu-outer{
+    width: 70%;
+}
+
+#dropdown_mois>.Select>.Select-menu-outer{
+    width: 70%;
+}
+
+#dropdown_jour>.Select>.Select-menu-outer{
+    width: 70%;
+}
+
+#dropdown_catr>.Select>.Select-menu-outer{
+    width: 70%;
+}
+
+#dropdown_obsm>.Select>.Select-menu-outer{
+    width: 70%;
+}
+
+#dropdown_atm>.Select>.Select-menu-outer{
+    width: 70%;
+}
+
+#dropdown_color>.Select>.Select-menu-outer{
+    width: 70%;
+}
+
+/*Second page dropdown menu width*/
+#modalite-dropdown>.Select>.Select-menu-outer{
+    width: 33%;
+}
+
+#variable-dropdown>.Select>.Select-menu-outer{
+    width: 38%;
+}
+
+/*Main page dropdown menu width*/
+#speed-dropdown>.Select>.Select-menu-outer{
+    width: 40%;
+}
+
+#niv_geo_dropdown>.Select>.Select-menu-outer{
+    width: 100%;
+    max-width: 150px;
+}
 
 #graph-menu-span{
     display: flex;
@@ -95,6 +219,11 @@
     max-width: 150px;
     margin-right: 5px;
 }
+
+/*
+#dropdown_indic > .Dropdown-1, .Select-value-label {
+    color: blue !important;
+}*/
 
 /* border on focus - default is blue
  * shadow box around input box.  default is blue
