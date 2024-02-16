@@ -18,6 +18,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME,"src/assets/styles.css"],suppress_callback_exceptions=True
 )
+server = app.server
 
 # Bar noir en haut de page
 navbar = dbc.NavbarSimple(
