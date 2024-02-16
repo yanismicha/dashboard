@@ -15,6 +15,8 @@ cyclistes sur le territoire français (metropolitain et outre mer).
 Vous pouvez utiliser les fichiers présent sur ce git pour utiliser le dashboard.  
 Pour ce faire, il vous faut vous rendre sur le fichier `dash.ipynb`.  
   
-Vous pouvez également trouver directement le dashboard en [cliquant ici](# "Dashboard"){: .btn .btn-primary .btn-sm}
+Vous pouvez également trouver directement le dashboard en <a href="https://dashbike.onrender.com" class="badge badge-info">Dashbike</a>
+
+
 
 
