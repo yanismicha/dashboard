@@ -15,12 +15,12 @@ from time import sleep
 # --------------------------------------------------------------------------------------------------
 
 #--------------------stockage des données-----------------------------------------
-data= pd.read_csv("accidents-velos_clean.csv",low_memory=False)
+data= pd.read_csv("datasets/accidents-velos_clean.csv",low_memory=False)
 # on recupere les données infos dep et reg
-pop=pd.read_csv("pop_par_dep.csv",sep=";")
-pistes_par_com=pd.read_csv("pistes_com.csv")
-pistes_par_dep=pd.read_csv("pistes_dep.csv")
-pistes_par_reg=pd.read_csv("pistes_reg.csv")
+pop=pd.read_csv("datasets/pop_par_dep.csv",sep=";")
+pistes_par_com=pd.read_csv("datasets/pistes_com.csv")
+pistes_par_dep=pd.read_csv("datasets/pistes_dep.csv")
+pistes_par_reg=pd.read_csv("datasets/pistes_reg.csv")
 # geojson pour maps
 geojson_regions_url = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson'
 geojson_departements_url = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-avec-outre-mer.geojson'
