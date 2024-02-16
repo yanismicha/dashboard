@@ -16,7 +16,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 #-----------------------------------------Notre Application-----------------------------------------#
 
 app = dash.Dash(
-    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME,"src/assets/styles.css"],suppress_callback_exceptions=True
+    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME,"assets/styles.css"],suppress_callback_exceptions=True
 )
 server = app.server
 
@@ -122,13 +122,13 @@ sidebar = html.Div(
     [
         html.H2("DashBike", className="display-4"),
         html.Hr(),
-        html.Img(src = Image.open("src/assets/accident_bike.png"),style={"width": "60%",
+        html.Img(src = Image.open("assets/accident_bike.png"),style={"width": "60%",
                                                              "margin-bottom": '10%'}),
         html.P(
             "Vous trouverez ici les différentes pages du dashboard", className="lead"
         ),
         dbc.Nav(submenu_1 + submenu_2, vertical=True,pills=True),
-        html.Img(src=Image.open("src/assets/roue.png"),style={"width": "60%",
+        html.Img(src=Image.open("assets/roue.png"),style={"width": "60%",
                                                   "margin-top": '140%'}),
     ],
     #style=fig.SIDEBAR_STYLE,
